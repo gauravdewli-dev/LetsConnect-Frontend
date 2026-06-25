@@ -1,0 +1,13 @@
+import apiService, { API_URL } from "@/services/api";
+import type { ChatRequest, ChatResponse, ConnectionStatusResponse } from "@/types";
+
+export const getStatus = () =>
+  apiService.get<ConnectionStatusResponse>("/api/status").then((r) => r.data);
+
+export const postChat = (payload: ChatRequest) =>
+  apiService.post<ChatResponse>("/api/chat", payload).then((r) => r.data);
+
+export const disconnectSlack = () =>
+  apiService.delete<{ message: string }>("/api/slack").then((r) => r.data);
+
+export { API_URL };
