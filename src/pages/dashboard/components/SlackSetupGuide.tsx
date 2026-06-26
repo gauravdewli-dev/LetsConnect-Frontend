@@ -56,6 +56,32 @@ export default function SlackSetupGuide() {
             <code className="text-xs">app_mention</code>.
           </li>
           <li>
+            Under <strong>OAuth &amp; Permissions → User Token Scopes</strong>, add:{" "}
+            <code className="text-xs">chat:write</code>,{" "}
+            <code className="text-xs">im:write</code>,{" "}
+            <code className="text-xs">users:read</code>,{" "}
+            <code className="text-xs">channels:history</code>,{" "}
+            <code className="text-xs">channels:read</code>,{" "}
+            <code className="text-xs">groups:history</code>,{" "}
+            <code className="text-xs">groups:read</code>.
+          </li>
+          <li>
+            Under <strong>App Home → Show Tabs</strong>, turn on the <strong>Messages Tab</strong> and
+            check <strong>Allow users to send Slash commands and messages from the messages tab</strong>.
+            Without this, Slack shows &quot;Sending messages to this app has been turned off.&quot;
+          </li>
+          <li>
+            Under <strong>App Home</strong>, you can also enable the Home tab. Subscribe to{" "}
+            <code className="text-xs">app_home_opened</code> under Event Subscriptions.
+          </li>
+          <li>
+            Set display name to <strong>LetsConnect</strong> under Basic Information.
+          </li>
+          <li>
+            Copy <code className="text-xs">App ID</code> into{" "}
+            <code className="text-xs">SLACK_APP_ID</code> in backend <code className="text-xs">.env</code>.
+          </li>
+          <li>
             Copy <code className="text-xs">Client ID</code>,{" "}
             <code className="text-xs">Client Secret</code>, and{" "}
             <code className="text-xs">Signing Secret</code> into{" "}

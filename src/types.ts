@@ -14,6 +14,9 @@ export interface ConnectionStatusResponse {
   gmail_email: string | null;
   slack_connected: boolean;
   slack_configured: boolean;
+  slack_send_as_user: boolean;
+  slack_team_id: string | null;
+  slack_open_url: string | null;
 }
 
 export interface ApiErrorDetail {
