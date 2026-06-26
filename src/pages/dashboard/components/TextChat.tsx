@@ -1,6 +1,7 @@
 import { type FormEvent, useEffect, useRef, useState } from "react";
-import { Bot, Loader2, Send } from "lucide-react";
+import { Loader2, Send } from "lucide-react";
 
+import { LOGO_SRC } from "@/atoms/Logo";
 import { Button } from "@/atoms/ui/button";
 import { Input } from "@/atoms/ui/input";
 import type { ChatMessage } from "@/types";
@@ -89,9 +90,11 @@ export default function TextChat() {
       <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto px-4 py-4 md:px-6">
         {messages.length === 0 && (
           <div className="mx-auto max-w-lg pt-8 text-center">
-            <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-indigo-50">
-              <Bot className="size-6 text-indigo-600" />
-            </div>
+            <img
+              src={LOGO_SRC}
+              alt="LetsConnect"
+              className="mx-auto mb-4 size-14 rounded-full object-cover"
+            />
             <p className="font-medium">Start a conversation</p>
             <p className="mt-1 text-sm text-muted-foreground">
               Search email, send Slack DMs, post to channels, and more.

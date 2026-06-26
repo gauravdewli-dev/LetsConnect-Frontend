@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Bot, Mail, MessageSquare, Sparkles } from "lucide-react";
+import { Bot, Mail, MessageSquare } from "lucide-react";
 
+import Logo from "@/atoms/Logo";
 import { Button } from "@/atoms/ui/button";
 import type { LoginPayload } from "@/types";
 
@@ -57,16 +58,14 @@ export default function Login() {
         <div className="pointer-events-none absolute -bottom-32 -right-16 size-96 rounded-full bg-violet-500/20 blur-3xl" />
 
         <div className="relative">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-indigo-200">
-            <Sparkles className="size-3.5" />
-            LetsConnect
-          </div>
-          <h1 className="max-w-md text-4xl font-semibold leading-tight tracking-tight">
-            LetsConnect
-            <span className="mt-2 block text-2xl font-normal text-indigo-300">
-              AI assistant for your work tools
-            </span>
-          </h1>
+          <Logo
+            className="mb-6"
+            imageClassName="size-14"
+            nameClassName="text-lg text-white"
+          />
+          <p className="max-w-md text-2xl font-normal leading-tight text-indigo-300">
+            AI assistant for your work tools
+          </p>
           <p className="mt-4 max-w-sm text-sm leading-relaxed text-slate-300">
             Connect Gmail and Slack today. Jira, Microsoft Teams, and more integrations are on the
             way — all through one chat-driven agent.
@@ -95,14 +94,8 @@ export default function Login() {
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-slate-50 to-white px-6 py-12">
         <div className="w-full max-w-md">
           <div className="mb-8 lg:hidden">
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700">
-              <Sparkles className="size-3.5" />
-              LetsConnect
-            </div>
-            <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-              LetsConnect
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <Logo className="mb-3" imageClassName="size-12" nameClassName="text-xl text-slate-900" />
+            <p className="text-sm text-muted-foreground">
               {isSignup ? "Create your account" : "Welcome back"} — AI assistant for your work tools
             </p>
           </div>

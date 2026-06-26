@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 
+import Logo from "@/atoms/Logo";
 import { Button } from "@/atoms/ui/button";
 
 interface LegalLayoutProps {
@@ -22,8 +23,8 @@ export default function LegalLayout({ title, updated, children }: LegalLayoutPro
         </Button>
 
         <header className="mb-8 border-b border-slate-200 pb-6">
-          <p className="text-sm font-medium text-indigo-600">LetsConnect</p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight text-slate-900">{title}</h1>
+          <Logo className="mb-3" imageClassName="size-11" nameClassName="text-base text-indigo-700" />
+          <h1 className="text-3xl font-semibold tracking-tight text-slate-900">{title}</h1>
           <p className="mt-2 text-sm text-muted-foreground">Last updated: {updated}</p>
         </header>
 

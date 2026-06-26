@@ -1,6 +1,7 @@
 import type { ComponentType, ReactNode } from "react";
-import { LayoutDashboard, LogOut, MessageSquare, Sparkles } from "lucide-react";
+import { LayoutDashboard, LogOut, MessageSquare } from "lucide-react";
 
+import Logo from "@/atoms/Logo";
 import { Button } from "@/atoms/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -29,10 +30,7 @@ export default function DashboardLayout({
     <div className="flex min-h-screen flex-col bg-background md:flex-row">
       {/* Mobile top bar */}
       <header className="flex items-center justify-between border-b px-4 py-3 md:hidden">
-        <div className="flex items-center gap-2 font-semibold">
-          <Sparkles className="size-4 text-indigo-600" />
-          LetsConnect
-        </div>
+        <Logo imageClassName="size-8" nameClassName="text-base" />
         <Button variant="ghost" size="sm" onClick={onLogout}>
           Log out
         </Button>
@@ -60,9 +58,8 @@ export default function DashboardLayout({
 
       {/* Sidebar — desktop */}
       <aside className="hidden w-60 shrink-0 flex-col border-r bg-slate-50/80 md:flex">
-        <div className="flex items-center gap-2 border-b px-5 py-5 font-semibold">
-          <Sparkles className="size-5 text-indigo-600" />
-          LetsConnect
+        <div className="flex items-center border-b px-5 py-5">
+          <Logo imageClassName="size-10" nameClassName="text-base" />
         </div>
 
         <nav className="flex-1 space-y-1 p-3">
