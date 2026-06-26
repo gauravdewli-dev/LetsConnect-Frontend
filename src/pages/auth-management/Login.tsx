@@ -62,8 +62,10 @@ export default function Login() {
             LetsConnect
           </div>
           <h1 className="max-w-md text-4xl font-semibold leading-tight tracking-tight">
-            Your AI assistant,
-            <span className="block text-indigo-300">connected to your tools.</span>
+            LetsConnect
+            <span className="mt-2 block text-2xl font-normal text-indigo-300">
+              AI assistant for your work tools
+            </span>
           </h1>
           <p className="mt-4 max-w-sm text-sm leading-relaxed text-slate-300">
             Connect Gmail and Slack today. Jira, Microsoft Teams, and more integrations are on the
@@ -98,10 +100,10 @@ export default function Login() {
               LetsConnect
             </div>
             <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-              {isSignup ? "Create your account" : "Welcome back"}
+              LetsConnect
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Connect your tools and chat with your AI assistant.
+              {isSignup ? "Create your account" : "Welcome back"} — AI assistant for your work tools
             </p>
           </div>
 
