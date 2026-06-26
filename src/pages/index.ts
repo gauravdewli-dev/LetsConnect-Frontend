@@ -3,9 +3,10 @@ import type { ReducersMapObject } from "@reduxjs/toolkit";
 
 import authManagement from "./auth-management";
 import dashboard from "./dashboard";
+import legal from "./legal";
 import success from "./success";
 
-export const Pages = [authManagement, dashboard, success];
+export const Pages = [authManagement, dashboard, legal, success];
 
 export default Pages;
 
