@@ -1,5 +1,5 @@
 import type { ComponentType, ReactNode } from "react";
-import { CheckCircle2, Mail, MessageSquare, Plus } from "lucide-react";
+import { Mail, MessageSquare, Plus } from "lucide-react";
 
 import { Badge } from "@/atoms/ui/badge";
 import { Button } from "@/atoms/ui/button";
@@ -7,7 +7,7 @@ import { API_URL } from "@/pages/dashboard/api";
 import { getToken } from "@/models/auth-model/selectors";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 
-import { disconnectSlack } from "../api";
+import { disconnectGmail, disconnectSlack } from "../api";
 import { useConnections } from "../hooks/useConnections";
 import { triggerFetchStatus } from "../sagaActions";
 
@@ -44,6 +44,11 @@ export default function IntegrationNodes() {
     window.location.href = `${API_URL}/slack/install?token=${encodeURIComponent(token)}`;
   }
 
+  async function handleDisconnectGmail() {
+    await disconnectGmail();
+    dispatch(triggerFetchStatus());
+  }
+
   async function handleDisconnectSlack() {
     await disconnectSlack();
     dispatch(triggerFetchStatus());
@@ -59,9 +64,13 @@ export default function IntegrationNodes() {
         detail={gmailConnected ? status.gmail_email || "Connected" : "Not connected"}
         action={
           gmailConnected ? (
-            <Button variant="outline" size="sm" className="w-full" disabled>
-              <CheckCircle2 className="size-4 text-green-600" />
-              Connected
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={() => void handleDisconnectGmail()}
+            >
+              Disconnect
             </Button>
           ) : (
             <Button size="sm" className="w-full" onClick={connectGmail}>
