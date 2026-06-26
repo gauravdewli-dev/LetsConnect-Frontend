@@ -1,7 +1,9 @@
 import { useCallback } from "react";
 
-import { logout } from "@/models/auth-model/slice";
-import { triggerFetchMe, triggerLogin, triggerSignup } from "@/models/auth-model/sagaActions";
+import { REFRESH_TOKEN_KEY } from "@/lib/constants/app-constants";
+import { logoutApi } from "@/models/auth-model/api";
+import { logout, clearAuthError } from "@/models/auth-model/slice";
+import { triggerFetchMe, triggerLogin } from "@/models/auth-model/sagaActions";
 import {
   getAuthError,
   getAuthLoading,
@@ -9,7 +11,7 @@ import {
   getUser,
 } from "@/models/auth-model/selectors";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import type { LoginPayload, SignupPayload } from "@/types";
+import type { LoginPayload } from "@/types";
 
 export function useAuth() {
   const dispatch = useAppDispatch();
@@ -22,12 +24,16 @@ export function useAuth() {
     (payload: LoginPayload) => dispatch(triggerLogin(payload)),
     [dispatch],
   );
-  const signup = useCallback(
-    (payload: SignupPayload) => dispatch(triggerSignup(payload)),
-    [dispatch],
-  );
   const fetchMe = useCallback(() => dispatch(triggerFetchMe()), [dispatch]);
-  const signOut = useCallback(() => dispatch(logout()), [dispatch]);
+  const signOut = useCallback(() => {
+    const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+    if (refreshToken) {
+      void logoutApi(refreshToken).catch(() => undefined);
+    }
+    dispatch(logout());
+  }, [dispatch]);
 
-  return { token, user, loading, error, login, signup, fetchMe, signOut };
+  const clearError = useCallback(() => dispatch(clearAuthError()), [dispatch]);
+
+  return { token, user, loading, error, login, fetchMe, signOut, clearError };
 }

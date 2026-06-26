@@ -18,17 +18,12 @@ function getErrorMessage(error: unknown): string {
 function* handleLogin(action: ReturnType<typeof sagaActions.triggerLogin>) {
   try {
     const data: TokenResponse = yield call(api.login, action.payload);
-    yield put(setAuthSuccess(data.access_token));
-    yield put(sagaActions.triggerFetchMe());
-  } catch (error) {
-    yield put(setAuthFailure(getErrorMessage(error)));
-  }
-}
-
-function* handleSignup(action: ReturnType<typeof sagaActions.triggerSignup>) {
-  try {
-    const data: TokenResponse = yield call(api.signup, action.payload);
-    yield put(setAuthSuccess(data.access_token));
+    yield put(
+      setAuthSuccess({
+        accessToken: data.access_token,
+        refreshToken: data.refresh_token,
+      }),
+    );
     yield put(sagaActions.triggerFetchMe());
   } catch (error) {
     yield put(setAuthFailure(getErrorMessage(error)));
@@ -46,6 +41,5 @@ function* handleFetchMe() {
 
 export default function* rootSaga() {
   yield takeLatest(sagaActions.triggerLogin.type, handleLogin);
-  yield takeLatest(sagaActions.triggerSignup.type, handleSignup);
   yield takeLatest(sagaActions.triggerFetchMe.type, handleFetchMe);
 }

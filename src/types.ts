@@ -1,6 +1,8 @@
 export interface TokenResponse {
   access_token: string;
+  refresh_token: string;
   token_type: string;
+  expires_in: number;
 }
 
 export interface UserResponse {
@@ -29,6 +31,7 @@ export interface ApiErrorBody {
 
 export interface AuthState {
   token: string | null;
+  refreshToken: string | null;
   user: UserResponse | null;
   loading: boolean;
   error: string | null;
