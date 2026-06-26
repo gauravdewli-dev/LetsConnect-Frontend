@@ -57,11 +57,11 @@ export default function GmailChat() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Gmail Assistant</CardTitle>
+        <CardTitle>AI Assistant</CardTitle>
         <CardDescription>
           {gmailConnected
-            ? "Ask about your inbox, unread mail, or search emails."
-            : "Connect Gmail above to start chatting."}
+            ? "Ask about connected tools — starting with Gmail."
+            : "Connect integrations above to start chatting."}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

@@ -31,12 +31,15 @@ export default function SlackChatGuide() {
           Chat in Slack
         </CardTitle>
         <CardDescription>
-          Gmail questions are handled in Slack — message the bot and replies come back there.
+          Message the bot in Slack — your AI assistant replies with help from connected tools.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4 text-sm">
         {!gmailConnected && (
-          <p className="text-muted-foreground">Connect Gmail above so the agent can read your inbox.</p>
+          <p className="text-muted-foreground">
+            Connect Gmail above so the assistant can use your inbox. More integrations like Jira
+            and Teams are coming soon.
+          </p>
         )}
         {gmailConnected && !slackConnected && (
           <p className="text-muted-foreground">

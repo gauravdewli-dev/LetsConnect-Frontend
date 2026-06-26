@@ -10,19 +10,19 @@ import { useAuth } from "./hooks/useAuth";
 
 const FEATURES = [
   {
-    icon: Mail,
-    title: "Gmail connected",
-    description: "Search, read, and summarize your inbox from chat.",
+    icon: Bot,
+    title: "AI assistant",
+    description: "One agent across your tools — powered by Gemini.",
   },
   {
     icon: MessageSquare,
-    title: "Slack native",
-    description: "Ask about email directly in Slack DMs or channels.",
+    title: "Chat where you work",
+    description: "Slack today. Microsoft Teams and more channels coming soon.",
   },
   {
-    icon: Bot,
-    title: "AI assistant",
-    description: "Gemini-powered agent with real Gmail tools.",
+    icon: Mail,
+    title: "Growing integrations",
+    description: "Gmail is live now. Jira, Teams, and others on the roadmap.",
   },
 ];
 
@@ -62,12 +62,12 @@ export default function Login() {
             LetsConnect
           </div>
           <h1 className="max-w-md text-4xl font-semibold leading-tight tracking-tight">
-            Your Gmail assistant,
-            <span className="block text-indigo-300">right inside Slack.</span>
+            Your AI assistant,
+            <span className="block text-indigo-300">connected to your tools.</span>
           </h1>
           <p className="mt-4 max-w-sm text-sm leading-relaxed text-slate-300">
-            Connect once, then ask about unread mail, search threads, and get summaries — all
-            without leaving Slack.
+            Connect Gmail and Slack today. Jira, Microsoft Teams, and more integrations are on the
+            way — all through one chat-driven agent.
           </p>
         </div>
 
@@ -101,7 +101,7 @@ export default function Login() {
               {isSignup ? "Create your account" : "Welcome back"}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Connect Gmail and Slack to get started.
+              Connect your tools and chat with your AI assistant.
             </p>
           </div>
 
@@ -112,7 +112,7 @@ export default function Login() {
               </h2>
               <p className="mt-1.5 text-sm text-muted-foreground">
                 {isSignup
-                  ? "Sign up to connect Gmail and chat in Slack."
+                  ? "Sign up to connect integrations and start chatting."
                   : "Sign in to manage your connections."}
               </p>
             </div>

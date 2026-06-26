@@ -50,7 +50,7 @@ export default function Dashboard() {
           <div>
             <CardTitle>Dashboard</CardTitle>
             <CardDescription>
-              Connect Gmail and Slack — then ask about your inbox directly in Slack.
+              Connect Gmail and Slack, then chat with your AI assistant in Slack.
             </CardDescription>
           </div>
           <Button variant="ghost" size="sm" onClick={handleLogout}>
@@ -65,7 +65,7 @@ export default function Dashboard() {
           </div>
           {slackReady && (
             <p className="text-sm text-muted-foreground">
-              You&apos;re all set. Open Slack and DM the bot to start chatting about your emails.
+              You&apos;re all set. Open Slack and DM the bot to talk to your AI assistant.
             </p>
           )}
         </CardContent>

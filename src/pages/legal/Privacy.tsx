@@ -4,8 +4,9 @@ export default function Privacy() {
   return (
     <LegalLayout title="Privacy Policy" updated="June 26, 2025">
       <p>
-        LetsConnect (&quot;we&quot;, &quot;our&quot;, or &quot;the app&quot;) helps you interact with
-        your Gmail account through Slack and our web dashboard. This Privacy Policy explains what
+        LetsConnect (&quot;we&quot;, &quot;our&quot;, or &quot;the app&quot;) is an AI assistant platform that connects
+        to your work tools through Slack and our web dashboard. Today we support Gmail; additional
+        integrations such as Jira and Microsoft Teams are planned. This Privacy Policy explains what
         information we collect, how we use it, and your choices.
       </p>
 

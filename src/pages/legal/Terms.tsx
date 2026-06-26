@@ -10,8 +10,9 @@ export default function Terms() {
 
       <h2>Description of service</h2>
       <p>
-        LetsConnect is a tool that connects your Gmail account to Slack and an AI assistant so you can
-        ask questions about your email in chat. You must connect accounts voluntarily via OAuth.
+        LetsConnect is an AI assistant that connects your work tools to chat platforms like Slack.
+        Today you can link Gmail and Slack; more integrations (e.g. Jira, Microsoft Teams) are planned.
+        You must connect accounts voluntarily via OAuth.
       </p>
 
       <h2>Eligibility</h2>
