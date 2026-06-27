@@ -78,6 +78,13 @@ export default function SlackSetupGuide() {
             Set display name to <strong>LetsConnect</strong> under Basic Information.
           </li>
           <li>
+            <strong>Manage Distribution → Activate Public Distribution</strong> so users can connect
+            from <em>any</em> Slack workspace. Without this, OAuth fails with{" "}
+            <code className="text-xs">invalid_team_for_non_distributed_app</code> outside your dev
+            workspace. You may need a privacy policy URL — use your deployed{" "}
+            <code className="text-xs">/privacy</code> page.
+          </li>
+          <li>
             Copy <code className="text-xs">App ID</code> into{" "}
             <code className="text-xs">SLACK_APP_ID</code> in backend <code className="text-xs">.env</code>.
           </li>

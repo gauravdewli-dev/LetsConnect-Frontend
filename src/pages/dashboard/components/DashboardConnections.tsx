@@ -12,8 +12,8 @@ export default function DashboardConnections() {
       <div>
         <h1 className="text-xl font-semibold">Connected accounts</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Add integrations for your AI assistant. Gmail and Slack are available today — Jira and
-          Teams coming soon.
+          Follow the flow: sign in, connect Gmail, then Slack. Your assistant uses each step in
+          order.
         </p>
       </div>
 
