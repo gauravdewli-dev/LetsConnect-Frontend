@@ -17,6 +17,7 @@ const SUGGESTIONS = [
 export default function GmailChat() {
   const { status } = useConnections();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,8 +39,9 @@ export default function GmailChat() {
     try {
       const response = await postChat({
         message: trimmed,
-        history: messages,
+        conversation_id: conversationId ?? undefined,
       });
+      setConversationId(response.conversation_id);
       setMessages([...nextMessages, { role: "assistant", content: response.reply }]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to send message");

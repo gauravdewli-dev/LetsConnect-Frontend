@@ -70,14 +70,31 @@ export interface ChatMessage {
   content: string;
   toolsUsed?: string[];
   sentAt?: number;
+  channel?: "web" | "slack";
 }
 
 export interface ChatRequest {
   message: string;
-  history?: ChatMessage[];
+  conversation_id?: string;
 }
 
 export interface ChatResponse {
   reply: string;
   tools_used: string[];
+  conversation_id: string;
+}
+
+export interface StoredChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  channel: "web" | "slack";
+  tools_used: string[];
+  created_at: string;
+}
+
+export interface ChatHistoryResponse {
+  conversation_id: string;
+  messages: StoredChatMessage[];
+  next_cursor: string | null;
 }

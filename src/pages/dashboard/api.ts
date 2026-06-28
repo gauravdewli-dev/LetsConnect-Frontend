@@ -1,5 +1,10 @@
 import apiService, { API_URL } from "@/services/api";
-import type { ChatRequest, ChatResponse, ConnectionStatusResponse } from "@/types";
+import type {
+  ChatHistoryResponse,
+  ChatRequest,
+  ChatResponse,
+  ConnectionStatusResponse,
+} from "@/types";
 
 export const getStatus = () =>
   apiService.get<ConnectionStatusResponse>("/api/status").then((r) => r.data);
@@ -7,6 +12,11 @@ export const getStatus = () =>
 export const backfillConnectionProfiles = () =>
   apiService
     .post<ConnectionStatusResponse>("/api/connections/backfill-profiles")
+    .then((r) => r.data);
+
+export const getChatMessages = (params?: { limit?: number; before?: string }) =>
+  apiService
+    .get<ChatHistoryResponse>("/api/chat/messages", { params })
     .then((r) => r.data);
 
 export const postChat = (payload: ChatRequest) =>
