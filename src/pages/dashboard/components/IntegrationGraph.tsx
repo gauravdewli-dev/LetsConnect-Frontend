@@ -32,6 +32,8 @@ import ConnectionStatusStrip from "./ConnectionStatusStrip";
 import { graphNodeTypes, INTEGRATION_STYLES } from "./integrationGraph/nodes";
 import {
   DEFAULT_POSITIONS,
+  edgeHandlesForIntegration,
+  hubIdentity,
   integrationStatus,
   type IntegrationId,
   POSITIONS_STORAGE_KEY,
@@ -138,11 +140,11 @@ export default function IntegrationGraph() {
       id: "hub",
       type: "hub",
       position: positions.hub,
-      data: {
-        label: "LetsConnect",
-        subtitle: user?.email ?? "Your assistant",
-        active: Boolean(connecting),
-      },
+        data: {
+          label: "LetsConnect",
+          ...hubIdentity(displayStatus, user?.email),
+          active: Boolean(connecting),
+        },
       draggable: !connecting,
     };
 
@@ -164,6 +166,8 @@ export default function IntegrationGraph() {
           kind: id,
           label: labels[id],
           subtitle: isConnecting ? "Authorize access" : meta.subtitle,
+          username: isConnecting ? undefined : meta.username,
+          detail: isConnecting ? undefined : meta.detail,
           connected: meta.connected,
           connectable: meta.connectable,
           connecting: isConnecting,
@@ -182,10 +186,13 @@ export default function IntegrationGraph() {
     const edges: Edge[] = [];
     const addEdge = (id: IntegrationId, connected: boolean, dashed = false) => {
       if (!connected) return;
+      const { sourceHandle, targetHandle } = edgeHandlesForIntegration(id);
       edges.push({
         id: dashed ? `hub-${id}-warn` : `hub-${id}`,
         source: "hub",
         target: id,
+        sourceHandle,
+        targetHandle,
         animated: !dashed,
         style: {
           stroke: dashed ? "#f59e0b" : INTEGRATION_STYLES[id].edge,
@@ -204,10 +211,13 @@ export default function IntegrationGraph() {
     }
 
     if (connecting) {
+      const { sourceHandle, targetHandle } = edgeHandlesForIntegration(connecting);
       edges.push({
         id: `hub-${connecting}-pending`,
         source: "hub",
         target: connecting,
+        sourceHandle,
+        targetHandle,
         animated: true,
         style: {
           stroke: INTEGRATION_STYLES[connecting].edge,

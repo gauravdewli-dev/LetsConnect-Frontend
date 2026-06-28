@@ -4,6 +4,11 @@ import type { ChatRequest, ChatResponse, ConnectionStatusResponse } from "@/type
 export const getStatus = () =>
   apiService.get<ConnectionStatusResponse>("/api/status").then((r) => r.data);
 
+export const backfillConnectionProfiles = () =>
+  apiService
+    .post<ConnectionStatusResponse>("/api/connections/backfill-profiles")
+    .then((r) => r.data);
+
 export const postChat = (payload: ChatRequest) =>
   apiService.post<ChatResponse>("/api/chat", payload).then((r) => r.data);
 

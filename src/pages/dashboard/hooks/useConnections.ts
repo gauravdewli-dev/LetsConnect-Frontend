@@ -1,12 +1,11 @@
 import { useCallback } from "react";
 
-import { triggerStartStatusPoll, triggerStopStatusPoll } from "@/pages/dashboard/sagaActions";
+import { triggerFetchStatus } from "@/pages/dashboard/sagaActions";
 import {
   getConnectingIntegration,
   getConnectionStatus,
   getConnectionsError,
   getConnectionsLoading,
-  getConnectionsPolling,
   getConnectionsRefreshing,
 } from "@/pages/dashboard/selectors";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -17,14 +16,12 @@ export function useConnections() {
   const loading = useAppSelector(getConnectionsLoading);
   const refreshing = useAppSelector(getConnectionsRefreshing);
   const error = useAppSelector(getConnectionsError);
-  const polling = useAppSelector(getConnectionsPolling);
   const connecting = useAppSelector(getConnectingIntegration);
 
-  const startPoll = useCallback(
-    () => dispatch(triggerStartStatusPoll()),
+  const refreshStatus = useCallback(
+    () => dispatch(triggerFetchStatus()),
     [dispatch],
   );
-  const stopPoll = useCallback(() => dispatch(triggerStopStatusPoll()), [dispatch]);
 
-  return { status, loading, refreshing, error, polling, connecting, startPoll, stopPoll };
+  return { status, loading, refreshing, error, connecting, refreshStatus };
 }

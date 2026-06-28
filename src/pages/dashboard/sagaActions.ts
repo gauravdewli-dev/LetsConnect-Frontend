@@ -1,5 +1,4 @@
 import { createAction } from "@reduxjs/toolkit";
 
+export const triggerInitializeConnections = createAction("connections/triggerInitializeConnections");
 export const triggerFetchStatus = createAction("connections/triggerFetchStatus");
-export const triggerStartStatusPoll = createAction("connections/triggerStartStatusPoll");
-export const triggerStopStatusPoll = createAction("connections/triggerStopStatusPoll");

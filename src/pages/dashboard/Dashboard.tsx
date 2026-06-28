@@ -1,9 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-import {
-  getCachedConnectionStatus,
-} from "@/lib/connectionCache";
+import { getCachedConnectionStatus } from "@/lib/connectionCache";
 import { useAuth } from "@/pages/auth-management/hooks/useAuth";
 import { useAppDispatch } from "@/store/hooks";
 
@@ -11,9 +9,8 @@ import DashboardConnections from "./components/DashboardConnections";
 import DashboardDeveloperGuide from "./components/DashboardDeveloperGuide";
 import DashboardLayout, { type DashboardTab } from "./components/DashboardLayout";
 import TextChat from "./components/TextChat";
-import { useConnections } from "./hooks/useConnections";
 import { useConnectionTimeout } from "./hooks/useConnectionTimeout";
-import { triggerFetchStatus } from "./sagaActions";
+import { triggerInitializeConnections } from "./sagaActions";
 import { hydrateConnectionStatus } from "./slice";
 
 function tabFromParam(value: string | null): DashboardTab | null {
@@ -25,9 +22,9 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const dispatch = useAppDispatch();
-  const { token, fetchMe, signOut } = useAuth();
-  const { startPoll, stopPoll } = useConnections();
+  const { signOut } = useAuth();
   useConnectionTimeout();
+  const initializedRef = useRef(false);
   const [activeTab, setActiveTab] = useState<DashboardTab>(
     () => tabFromParam(searchParams.get("tab")) ?? "dashboard",
   );
@@ -38,22 +35,15 @@ export default function Dashboard() {
   }, [searchParams]);
 
   useEffect(() => {
-    if (token) {
-      fetchMe();
-    }
-  }, [fetchMe, token]);
+    if (initializedRef.current) return;
+    initializedRef.current = true;
 
-  useEffect(() => {
     const cached = getCachedConnectionStatus();
     if (cached) {
       dispatch(hydrateConnectionStatus(cached));
     }
-    dispatch(triggerFetchStatus());
-    startPoll();
-    return () => {
-      stopPoll();
-    };
-  }, [dispatch, startPoll, stopPoll]);
+    dispatch(triggerInitializeConnections());
+  }, [dispatch]);
 
   function handleLogout() {
     signOut();

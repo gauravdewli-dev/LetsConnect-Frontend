@@ -12,14 +12,18 @@ export const CONNECTING_TIMEOUT_MS = 60 * 1000;
 export const DEFAULT_CONNECTION_STATUS: ConnectionStatusResponse = {
   gmail_connected: false,
   gmail_email: null,
+  gmail_display_name: null,
   slack_connected: false,
   slack_configured: false,
   slack_send_as_user: false,
   slack_team_id: null,
+  slack_team_name: null,
+  slack_display_name: null,
   slack_open_url: null,
   jira_connected: false,
   jira_site_url: null,
   jira_site_name: null,
+  jira_display_name: null,
   jira_configured: false,
   jira_oauth_callback_url: null,
 };

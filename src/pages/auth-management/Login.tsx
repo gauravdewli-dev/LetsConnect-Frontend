@@ -4,7 +4,6 @@ import { Bot, Mail, MessageSquare } from "lucide-react";
 
 import Logo from "@/atoms/Logo";
 import { setAuthSuccess } from "@/models/auth-model/slice";
-import { triggerFetchMe } from "@/models/auth-model/sagaActions";
 import { useAppDispatch } from "@/store/hooks";
 import type { LoginPayload, TokenResponse } from "@/types";
 
@@ -60,7 +59,6 @@ export default function Login() {
         refreshToken: tokens.refresh_token,
       }),
     );
-    dispatch(triggerFetchMe());
   }
 
   return (

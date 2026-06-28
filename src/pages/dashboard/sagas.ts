@@ -1,10 +1,9 @@
-import { call, cancelled, delay, put, race, take, takeLatest } from "redux-saga/effects";
+import { call, put, takeLeading } from "redux-saga/effects";
 
 import {
   clearConnectingProvider,
   setCachedConnectionStatus,
 } from "@/lib/connectionCache";
-import { STATUS_POLL_MS } from "@/lib/constants/app-constants";
 import type { ConnectionStatusResponse } from "@/types";
 
 import * as api from "./api";
@@ -15,40 +14,46 @@ function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Failed to load status";
 }
 
+function needsProfileBackfill(status: ConnectionStatusResponse): boolean {
+  if (status.gmail_connected && !status.gmail_display_name) return true;
+  if (status.slack_connected && status.slack_send_as_user && !status.slack_display_name) {
+    return true;
+  }
+  if (status.jira_connected && !status.jira_display_name) return true;
+  return false;
+}
+
+function* applyStatus(status: ConnectionStatusResponse) {
+  setCachedConnectionStatus(status);
+  yield put(setFetchStatusSuccess(status));
+  clearConnectingProvider();
+}
+
 function* handleFetchStatus() {
   try {
     const status: ConnectionStatusResponse = yield call(api.getStatus);
-    setCachedConnectionStatus(status);
-    yield put(setFetchStatusSuccess(status));
-    clearConnectingProvider();
+    yield* applyStatus(status);
   } catch (error) {
     yield put(setFetchStatusFailure(getErrorMessage(error)));
   }
 }
 
-function* pollStatusLoop(): Generator {
+/** One status fetch; backfill only when display names are missing (max 2 requests). */
+function* handleInitializeConnections() {
   try {
-    while (true) {
-      yield put(sagaActions.triggerFetchStatus());
-      yield delay(STATUS_POLL_MS);
+    const status: ConnectionStatusResponse = yield call(api.getStatus);
+    if (needsProfileBackfill(status)) {
+      const refreshed: ConnectionStatusResponse = yield call(api.backfillConnectionProfiles);
+      yield* applyStatus(refreshed);
+      return;
     }
-  } finally {
-    if (yield cancelled()) {
-      // polling stopped
-    }
-  }
-}
-
-function* watchStatusPoll(): Generator {
-  while (yield take(sagaActions.triggerStartStatusPoll.type)) {
-    yield race({
-      task: call(pollStatusLoop),
-      cancel: take(sagaActions.triggerStopStatusPoll.type),
-    });
+    yield* applyStatus(status);
+  } catch (error) {
+    yield put(setFetchStatusFailure(getErrorMessage(error)));
   }
 }
 
 export default function* rootSaga() {
-  yield takeLatest(sagaActions.triggerFetchStatus.type, handleFetchStatus);
-  yield watchStatusPoll();
+  yield takeLeading(sagaActions.triggerInitializeConnections.type, handleInitializeConnections);
+  yield takeLeading(sagaActions.triggerFetchStatus.type, handleFetchStatus);
 }

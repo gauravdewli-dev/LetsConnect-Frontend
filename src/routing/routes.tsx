@@ -3,15 +3,11 @@ import { Route, Routes, useLocation } from "react-router-dom";
 
 import { flattenPages, Pages } from "@/pages";
 import AuthGuard from "@/routing/AuthGuard";
+import { PageSkeleton } from "@/routing/AppSkeleton";
 import NotFoundPage from "@/routing/not-found";
 import Layout from "@/templates/layout";
 
-const PageLoading = () => (
-  <div className="flex h-screen items-center justify-center">
-    <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
-    <span className="ml-3 text-muted-foreground">Loading…</span>
-  </div>
-);
+const PageLoading = () => <PageSkeleton />;
 
 export default function AppRouter() {
   const location = useLocation();

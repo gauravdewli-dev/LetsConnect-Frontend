@@ -1,4 +1,4 @@
-import { call, put, takeLatest } from "redux-saga/effects";
+import { call, put, takeLatest, takeLeading } from "redux-saga/effects";
 
 import type { TokenResponse, UserResponse } from "@/types";
 
@@ -48,5 +48,5 @@ function* handleFetchMe() {
 
 export default function* rootSaga() {
   yield takeLatest(sagaActions.triggerLogin.type, handleLogin);
-  yield takeLatest(sagaActions.triggerFetchMe.type, handleFetchMe);
+  yield takeLeading(sagaActions.triggerFetchMe.type, handleFetchMe);
 }

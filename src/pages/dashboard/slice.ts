@@ -4,8 +4,7 @@ import type { ConnectionsState, ConnectionStatusResponse } from "@/types";
 
 import {
   triggerFetchStatus,
-  triggerStartStatusPoll,
-  triggerStopStatusPoll,
+  triggerInitializeConnections,
 } from "./sagaActions";
 
 const initialState: ConnectionsState = {
@@ -13,7 +12,6 @@ const initialState: ConnectionsState = {
   loading: false,
   refreshing: false,
   error: null,
-  polling: false,
   connecting: null,
   connectTimedOut: null,
 };
@@ -77,11 +75,13 @@ const slice = createSlice({
         }
         state.error = null;
       })
-      .addCase(triggerStartStatusPoll, (state) => {
-        state.polling = true;
-      })
-      .addCase(triggerStopStatusPoll, (state) => {
-        state.polling = false;
+      .addCase(triggerInitializeConnections, (state) => {
+        if (state.status) {
+          state.refreshing = true;
+        } else {
+          state.loading = true;
+        }
+        state.error = null;
       });
   },
 });
