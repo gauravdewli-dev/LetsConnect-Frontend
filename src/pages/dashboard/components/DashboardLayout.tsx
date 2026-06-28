@@ -1,11 +1,11 @@
 import type { ComponentType, ReactNode } from "react";
-import { LayoutDashboard, LogOut, MessageSquare } from "lucide-react";
+import { Code2, LayoutDashboard, LogOut, MessageSquare } from "lucide-react";
 
 import Logo from "@/atoms/Logo";
 import { Button } from "@/atoms/ui/button";
 import { cn } from "@/lib/utils";
 
-export type DashboardTab = "dashboard" | "chat";
+export type DashboardTab = "dashboard" | "chat" | "developer";
 
 interface DashboardLayoutProps {
   activeTab: DashboardTab;
@@ -18,6 +18,7 @@ const NAV_ITEMS: { id: DashboardTab; label: string; icon: ComponentType<{ classN
   [
     { id: "dashboard", label: "Connected accounts", icon: LayoutDashboard },
     { id: "chat", label: "Text chat", icon: MessageSquare },
+    { id: "developer", label: "Developer guide", icon: Code2 },
   ];
 
 export default function DashboardLayout({
@@ -27,7 +28,7 @@ export default function DashboardLayout({
   children,
 }: DashboardLayoutProps) {
   return (
-    <div className="flex min-h-screen flex-col bg-background md:flex-row">
+    <div className="flex h-screen flex-col bg-background md:flex-row">
       {/* Mobile top bar */}
       <header className="flex items-center justify-between border-b px-4 py-3 md:hidden">
         <Logo imageClassName="size-8" nameClassName="text-base" />

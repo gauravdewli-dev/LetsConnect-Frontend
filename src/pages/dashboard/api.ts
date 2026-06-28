@@ -13,4 +13,7 @@ export const disconnectGmail = () =>
 export const disconnectSlack = () =>
   apiService.delete<{ message: string }>("/api/slack").then((r) => r.data);
 
+export const disconnectJira = () =>
+  apiService.delete<{ message: string }>("/api/jira").then((r) => r.data);
+
 export { API_URL };

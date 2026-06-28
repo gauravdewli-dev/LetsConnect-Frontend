@@ -1,5 +1,9 @@
 import { call, cancelled, delay, put, race, take, takeLatest } from "redux-saga/effects";
 
+import {
+  clearConnectingProvider,
+  setCachedConnectionStatus,
+} from "@/lib/connectionCache";
 import { STATUS_POLL_MS } from "@/lib/constants/app-constants";
 import type { ConnectionStatusResponse } from "@/types";
 
@@ -14,7 +18,9 @@ function getErrorMessage(error: unknown): string {
 function* handleFetchStatus() {
   try {
     const status: ConnectionStatusResponse = yield call(api.getStatus);
+    setCachedConnectionStatus(status);
     yield put(setFetchStatusSuccess(status));
+    clearConnectingProvider();
   } catch (error) {
     yield put(setFetchStatusFailure(getErrorMessage(error)));
   }

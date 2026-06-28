@@ -19,6 +19,11 @@ export interface ConnectionStatusResponse {
   slack_send_as_user: boolean;
   slack_team_id: string | null;
   slack_open_url: string | null;
+  jira_connected: boolean;
+  jira_site_url: string | null;
+  jira_site_name: string | null;
+  jira_configured: boolean;
+  jira_oauth_callback_url: string | null;
 }
 
 export interface ApiErrorDetail {
@@ -40,8 +45,11 @@ export interface AuthState {
 export interface ConnectionsState {
   status: ConnectionStatusResponse | null;
   loading: boolean;
+  refreshing: boolean;
   error: string | null;
   polling: boolean;
+  connecting: "gmail" | "slack" | "jira" | null;
+  connectTimedOut: "gmail" | "slack" | "jira" | null;
 }
 
 export interface LoginPayload {
