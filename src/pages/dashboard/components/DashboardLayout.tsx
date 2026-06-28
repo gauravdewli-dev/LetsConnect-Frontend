@@ -5,7 +5,9 @@ import Logo from "@/atoms/Logo";
 import { Button } from "@/atoms/ui/button";
 import { cn } from "@/lib/utils";
 
-export type DashboardTab = "dashboard" | "chat" | "developer";
+import type { DashboardTab } from "@/lib/dashboardTab";
+
+export type { DashboardTab };
 
 interface DashboardLayoutProps {
   activeTab: DashboardTab;

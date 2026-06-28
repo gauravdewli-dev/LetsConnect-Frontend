@@ -81,7 +81,7 @@ export function hubIdentity(status: ConnectionStatusResponse, fallbackEmail?: st
 } {
   const username =
     status.gmail_display_name ||
-    status.slack_display_name ||
+    (status.slack_connected ? status.slack_display_name : null) ||
     status.jira_display_name ||
     (status.gmail_email ? nameFromEmail(status.gmail_email) : null) ||
     (fallbackEmail ? nameFromEmail(fallbackEmail) : null);
@@ -89,11 +89,22 @@ export function hubIdentity(status: ConnectionStatusResponse, fallbackEmail?: st
   const subtitle =
     status.gmail_email ||
     fallbackEmail ||
-    status.slack_team_name ||
+    (status.slack_connected ? status.slack_team_name : null) ||
     status.jira_site_name ||
     "Your assistant";
 
-  return { username: username ?? undefined, subtitle };
+  return { username: username ?? undefined, subtitle: subtitle ?? "Your assistant" };
+}
+
+export function integrationLinked(id: IntegrationId, status: ConnectionStatusResponse): boolean {
+  switch (id) {
+    case "gmail":
+      return status.gmail_connected;
+    case "slack":
+      return status.slack_connected;
+    case "jira":
+      return status.jira_connected;
+  }
 }
 
 export function integrationStatus(

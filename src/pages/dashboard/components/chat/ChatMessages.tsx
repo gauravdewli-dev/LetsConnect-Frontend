@@ -6,6 +6,7 @@ import { parseAssistantMessage } from "./parseMessage";
 interface UserMessageProps {
   content: string;
   timestamp?: number;
+  channel?: "web" | "slack";
 }
 
 function formatTime(ts?: number) {
@@ -13,16 +14,29 @@ function formatTime(ts?: number) {
   return new Date(ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
 
-export function UserMessage({ content, timestamp }: UserMessageProps) {
+function ChannelLabel({ channel }: { channel?: "web" | "slack" }) {
+  if (!channel) return null;
+  const label = channel === "slack" ? "Slack" : "Web";
+  return (
+    <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+      {label}
+    </span>
+  );
+}
+
+export function UserMessage({ content, timestamp, channel }: UserMessageProps) {
   return (
     <div className="flex justify-end gap-2">
       <div className="flex max-w-[min(85%,32rem)] flex-col items-end gap-1">
         <div className="rounded-2xl rounded-br-md bg-indigo-600 px-4 py-2.5 text-sm leading-relaxed text-white shadow-sm">
           <p className="whitespace-pre-wrap break-words">{content}</p>
         </div>
-        {timestamp && (
-          <span className="px-1 text-[10px] text-muted-foreground">{formatTime(timestamp)}</span>
-        )}
+        <div className="flex items-center gap-1.5 px-1">
+          <ChannelLabel channel={channel} />
+          {timestamp && (
+            <span className="text-[10px] text-muted-foreground">{formatTime(timestamp)}</span>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -31,9 +45,10 @@ export function UserMessage({ content, timestamp }: UserMessageProps) {
 interface AssistantMessageProps {
   content: string;
   timestamp?: number;
+  channel?: "web" | "slack";
 }
 
-export function AssistantMessage({ content, timestamp }: AssistantMessageProps) {
+export function AssistantMessage({ content, timestamp, channel }: AssistantMessageProps) {
   const blocks = parseAssistantMessage(content);
 
   return (
@@ -50,7 +65,10 @@ export function AssistantMessage({ content, timestamp }: AssistantMessageProps) 
           ))}
         </div>
         {timestamp && (
-          <span className="px-1 text-[10px] text-muted-foreground">{formatTime(timestamp)}</span>
+          <div className="flex items-center gap-1.5 px-1">
+            <ChannelLabel channel={channel} />
+            <span className="text-[10px] text-muted-foreground">{formatTime(timestamp)}</span>
+          </div>
         )}
       </div>
     </div>

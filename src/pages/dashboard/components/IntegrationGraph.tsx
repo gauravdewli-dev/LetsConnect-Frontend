@@ -16,6 +16,7 @@ import {
   clearConnectingProvider,
   DEFAULT_CONNECTION_STATUS,
   getCachedConnectionStatus,
+  setCachedConnectionStatus,
   setConnectingProvider,
 } from "@/lib/connectionCache";
 import { getToken, getUser } from "@/models/auth-model/selectors";
@@ -26,7 +27,7 @@ import { disconnectGmail, disconnectJira, disconnectSlack } from "../api";
 import { useConnections } from "../hooks/useConnections";
 import { getConnectTimedOut } from "../selectors";
 import { triggerFetchStatus } from "../sagaActions";
-import { clearConnectTimedOut, setConnectTimedOut, setConnecting } from "../slice";
+import { clearConnectTimedOut, setConnectTimedOut, setConnecting, setFetchStatusSuccess } from "../slice";
 
 import ConnectionStatusStrip from "./ConnectionStatusStrip";
 import { graphNodeTypes, INTEGRATION_STYLES } from "./integrationGraph/nodes";
@@ -34,6 +35,7 @@ import {
   DEFAULT_POSITIONS,
   edgeHandlesForIntegration,
   hubIdentity,
+  integrationLinked,
   integrationStatus,
   type IntegrationId,
   POSITIONS_STORAGE_KEY,
@@ -76,6 +78,14 @@ export default function IntegrationGraph() {
     [status],
   );
 
+  const applyStatus = useCallback(
+    (nextStatus: typeof displayStatus) => {
+      setCachedConnectionStatus(nextStatus);
+      dispatch(setFetchStatusSuccess(nextStatus));
+    },
+    [dispatch],
+  );
+
   const disconnectHandlers = useMemo(
     () => ({
       gmail: async () => {
@@ -83,15 +93,15 @@ export default function IntegrationGraph() {
         dispatch(triggerFetchStatus());
       },
       slack: async () => {
-        await disconnectSlack();
-        dispatch(triggerFetchStatus());
+        const nextStatus = await disconnectSlack();
+        applyStatus(nextStatus);
       },
       jira: async () => {
         await disconnectJira();
         dispatch(triggerFetchStatus());
       },
     }),
-    [dispatch],
+    [applyStatus, dispatch],
   );
 
   const beginConnect = useCallback(
@@ -173,7 +183,9 @@ export default function IntegrationGraph() {
           connecting: isConnecting,
           warning: isConnecting ? undefined : meta.warning,
           onDisconnect:
-            meta.connected && !isConnecting ? () => void disconnectHandlers[id]() : undefined,
+            integrationLinked(id, displayStatus) && !isConnecting
+              ? () => void disconnectHandlers[id]()
+              : undefined,
         },
         draggable: !isConnecting,
       };

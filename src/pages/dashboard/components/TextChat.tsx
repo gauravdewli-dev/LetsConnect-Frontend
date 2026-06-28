@@ -1,5 +1,5 @@
-import { type FormEvent, useEffect, useRef, useState } from "react";
-import { Send, Sparkles } from "lucide-react";
+import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { RefreshCw, Send, Sparkles } from "lucide-react";
 
 import { LOGO_SRC } from "@/atoms/Logo";
 import { Button } from "@/atoms/ui/button";
@@ -8,6 +8,7 @@ import type { ChatMessage, StoredChatMessage } from "@/types";
 import { getChatMessages, postChat } from "../api";
 import { useConnections } from "../hooks/useConnections";
 
+import ChatHistorySkeleton from "./chat/ChatHistorySkeleton";
 import { AssistantMessage, TypingIndicator, UserMessage } from "./chat/ChatMessages";
 
 const SUGGESTIONS = [
@@ -32,6 +33,7 @@ export default function TextChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [historyLoading, setHistoryLoading] = useState(true);
+  const [historyError, setHistoryError] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,33 +44,35 @@ export default function TextChat() {
   const slackConnected = status?.slack_connected ?? false;
   const slackSendAsUser = status?.slack_send_as_user ?? false;
   const jiraConnected = status?.jira_connected ?? false;
-  const canChat = gmailConnected || (slackConnected && slackSendAsUser) || jiraConnected;
+  const slackSynced = slackConnected && slackSendAsUser;
+  const canChat = gmailConnected || slackSynced || jiraConnected;
+
+  const loadHistory = useCallback(async () => {
+    setHistoryLoading(true);
+    setHistoryError(null);
+    try {
+      const data = await getChatMessages();
+      setConversationId(data.conversation_id);
+      setMessages(data.messages.map(toChatMessage));
+    } catch (err) {
+      setHistoryError(err instanceof Error ? err.message : "Failed to load chat history");
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    let cancelled = false;
-
-    async function loadHistory() {
-      setHistoryLoading(true);
-      setError(null);
-      try {
-        const data = await getChatMessages();
-        if (cancelled) return;
-        setConversationId(data.conversation_id);
-        setMessages(data.messages.map(toChatMessage));
-      } catch (err) {
-        if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Failed to load chat history");
-        }
-      } finally {
-        if (!cancelled) setHistoryLoading(false);
-      }
-    }
-
     void loadHistory();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  }, [loadHistory]);
+
+  const slackSyncKey = `${slackConnected}:${slackSendAsUser}`;
+  const slackSyncKeyRef = useRef(slackSyncKey);
+
+  useEffect(() => {
+    if (historyLoading || slackSyncKeyRef.current === slackSyncKey) return;
+    slackSyncKeyRef.current = slackSyncKey;
+    void loadHistory();
+  }, [historyLoading, loadHistory, slackSyncKey]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -123,15 +127,23 @@ export default function TextChat() {
     }
   }
 
+  const slackReconnectNeeded = slackConnected && !slackSendAsUser;
+
   const connectedTools = [
     gmailConnected && "Gmail",
-    slackSendAsUser && "Slack",
+    slackSynced && "Slack",
     jiraConnected && "Jira",
   ]
     .filter(Boolean)
     .join(", ");
 
-  const slackReconnectNeeded = slackConnected && !slackSendAsUser;
+  const statusLine = slackReconnectNeeded
+    ? "Reconnect Slack from Connected accounts to send messages as you."
+    : canChat
+      ? slackSynced
+        ? `Online · ${connectedTools} · synced with Slack`
+        : `Online · ${connectedTools}`
+      : "Connect Gmail, Slack, or Jira to start chatting.";
 
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col bg-slate-50/50">
@@ -140,26 +152,32 @@ export default function TextChat() {
           <img src={LOGO_SRC} alt="" className="size-10 rounded-full object-cover ring-2 ring-indigo-100" />
           <div>
             <h1 className="text-lg font-semibold">LetsConnect</h1>
-            <p className="text-sm text-muted-foreground">
-              {slackReconnectNeeded
-                ? "Reconnect Slack from Connected accounts to send messages as you."
-                : canChat
-                  ? `Online · ${connectedTools} · shared with Slack`
-                  : "Connect Gmail, Slack, or Jira to start chatting."}
-            </p>
+            <p className="text-sm text-muted-foreground">{statusLine}</p>
           </div>
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-6 md:px-8">
         <div className="mx-auto flex max-w-3xl flex-col gap-4">
-          {historyLoading && (
-            <div className="flex justify-center pt-12">
-              <TypingIndicator />
+          {historyLoading && <ChatHistorySkeleton slackSynced={slackSynced} />}
+
+          {!historyLoading && historyError && (
+            <div className="flex flex-col items-center gap-4 pt-16 text-center">
+              <div className="flex size-14 items-center justify-center rounded-2xl bg-red-50">
+                <RefreshCw className="size-6 text-red-500" />
+              </div>
+              <div className="max-w-sm space-y-1">
+                <p className="font-medium text-foreground">Couldn&apos;t load your conversation</p>
+                <p className="text-sm text-muted-foreground">{historyError}</p>
+              </div>
+              <Button type="button" variant="outline" size="sm" onClick={() => void loadHistory()}>
+                <RefreshCw className="mr-2 size-3.5" />
+                Try again
+              </Button>
             </div>
           )}
 
-          {!historyLoading && messages.length === 0 && (
+          {!historyLoading && !historyError && messages.length === 0 && (
             <div className="flex flex-col items-center pt-12 text-center">
               <div className="mb-4 flex size-16 items-center justify-center rounded-2xl bg-indigo-100">
                 <Sparkles className="size-8 text-indigo-600" />
@@ -185,14 +203,21 @@ export default function TextChat() {
           )}
 
           {!historyLoading &&
+            !historyError &&
             messages.map((msg, index) =>
               msg.role === "user" ? (
-                <UserMessage key={`${msg.role}-${index}`} content={msg.content} timestamp={msg.sentAt} />
+                <UserMessage
+                  key={`${msg.role}-${index}`}
+                  content={msg.content}
+                  timestamp={msg.sentAt}
+                  channel={msg.channel}
+                />
               ) : (
                 <AssistantMessage
                   key={`${msg.role}-${index}`}
                   content={msg.content}
                   timestamp={msg.sentAt}
+                  channel={msg.channel}
                 />
               ),
             )}
@@ -214,14 +239,20 @@ export default function TextChat() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               rows={1}
-              placeholder={canChat ? "Message LetsConnect…" : "Connect an integration first"}
-              disabled={!canChat || loading || historyLoading}
+              placeholder={
+                historyLoading
+                  ? "Loading conversation…"
+                  : canChat
+                    ? "Message LetsConnect…"
+                    : "Connect an integration first"
+              }
+              disabled={!canChat || loading || historyLoading || !!historyError}
               className="max-h-32 min-h-[44px] w-full resize-none bg-transparent px-4 py-3 text-sm outline-none placeholder:text-muted-foreground disabled:opacity-50"
             />
           </div>
           <Button
             type="submit"
-            disabled={!canChat || loading || historyLoading || !input.trim()}
+            disabled={!canChat || loading || historyLoading || !!historyError || !input.trim()}
             className="size-11 shrink-0 rounded-xl px-0"
           >
             <Send className="size-4" />

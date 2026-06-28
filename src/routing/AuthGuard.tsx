@@ -1,6 +1,7 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { readDashboardTabFromSearch } from "@/lib/dashboardTab";
 import { logout } from "@/models/auth-model/slice";
 import { triggerFetchMe } from "@/models/auth-model/sagaActions";
 import {
@@ -51,7 +52,7 @@ export default function AuthGuard({ children }: AuthGuardProps) {
   }
 
   if (!user) {
-    const variant = location.pathname.includes("chat") ? "chat" : "dashboard";
+    const variant = readDashboardTabFromSearch(location.search) === "chat" ? "chat" : "dashboard";
     return <AppSkeleton variant={variant} />;
   }
 

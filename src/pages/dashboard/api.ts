@@ -26,7 +26,7 @@ export const disconnectGmail = () =>
   apiService.delete<{ message: string }>("/api/gmail").then((r) => r.data);
 
 export const disconnectSlack = () =>
-  apiService.delete<{ message: string }>("/api/slack").then((r) => r.data);
+  apiService.delete<ConnectionStatusResponse>("/api/slack").then((r) => r.data);
 
 export const disconnectJira = () =>
   apiService.delete<{ message: string }>("/api/jira").then((r) => r.data);

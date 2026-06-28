@@ -1,3 +1,4 @@
+import { setCachedConnectionStatus } from "@/lib/connectionCache";
 import { API_URL } from "@/pages/dashboard/api";
 import { Button } from "@/atoms/ui/button";
 import { getToken } from "@/models/auth-model/selectors";
@@ -5,7 +6,7 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 
 import { disconnectSlack } from "../api";
 import { useConnections } from "../hooks/useConnections";
-import { triggerFetchStatus } from "../sagaActions";
+import { setFetchStatusSuccess } from "../slice";
 
 export default function AddToSlackButton() {
   const dispatch = useAppDispatch();
@@ -21,8 +22,9 @@ export default function AddToSlackButton() {
   }
 
   async function disconnect() {
-    await disconnectSlack();
-    dispatch(triggerFetchStatus());
+    const nextStatus = await disconnectSlack();
+    setCachedConnectionStatus(nextStatus);
+    dispatch(setFetchStatusSuccess(nextStatus));
   }
 
   if (!slackConfigured) {

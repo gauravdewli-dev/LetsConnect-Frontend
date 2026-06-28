@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { getCachedConnectionStatus } from "@/lib/connectionCache";
 import { useAuth } from "@/pages/auth-management/hooks/useAuth";
@@ -7,32 +7,20 @@ import { useAppDispatch } from "@/store/hooks";
 
 import DashboardConnections from "./components/DashboardConnections";
 import DashboardDeveloperGuide from "./components/DashboardDeveloperGuide";
-import DashboardLayout, { type DashboardTab } from "./components/DashboardLayout";
+import DashboardLayout from "./components/DashboardLayout";
 import TextChat from "./components/TextChat";
 import { useConnectionTimeout } from "./hooks/useConnectionTimeout";
+import { useDashboardTab } from "./hooks/useDashboardTab";
 import { triggerInitializeConnections } from "./sagaActions";
 import { hydrateConnectionStatus } from "./slice";
 
-function tabFromParam(value: string | null): DashboardTab | null {
-  if (value === "dashboard" || value === "chat" || value === "developer") return value;
-  return null;
-}
-
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const dispatch = useAppDispatch();
   const { signOut } = useAuth();
+  const { activeTab, setActiveTab } = useDashboardTab();
   useConnectionTimeout();
   const initializedRef = useRef(false);
-  const [activeTab, setActiveTab] = useState<DashboardTab>(
-    () => tabFromParam(searchParams.get("tab")) ?? "dashboard",
-  );
-
-  useEffect(() => {
-    const tab = tabFromParam(searchParams.get("tab"));
-    if (tab) setActiveTab(tab);
-  }, [searchParams]);
 
   useEffect(() => {
     if (initializedRef.current) return;
