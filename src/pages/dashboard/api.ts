@@ -4,6 +4,7 @@ import type {
   ChatRequest,
   ChatResponse,
   ConnectionStatusResponse,
+  ConnectUrlResponse,
 } from "@/types";
 
 export const getStatus = () =>
@@ -18,6 +19,11 @@ export const getChatMessages = (params?: { limit?: number; before?: string }) =>
   apiService
     .get<ChatHistoryResponse>("/api/chat/messages", { params })
     .then((r) => r.data);
+
+export const getIntegrationConnectUrl = (provider: "gmail" | "slack" | "jira") =>
+  apiService
+    .get<ConnectUrlResponse>(`/api/integrations/${provider}/connect-url`)
+    .then((r) => r.data.url);
 
 export const postChat = (payload: ChatRequest) =>
   apiService.post<ChatResponse>("/api/chat", payload).then((r) => r.data);

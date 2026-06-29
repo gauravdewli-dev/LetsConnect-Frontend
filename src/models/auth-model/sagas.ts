@@ -3,15 +3,15 @@ import { call, put, takeLatest, takeLeading } from "redux-saga/effects";
 import type { TokenResponse, UserResponse } from "@/types";
 
 import * as api from "./api";
+import { hasStoredAuthTokens } from "@/lib/authSession";
 import * as sagaActions from "./sagaActions";
 import {
+  logout,
   setAuthFailure,
   setAuthSuccess,
   setFetchMeFailure,
   setFetchMeSuccess,
-  logout,
 } from "./slice";
-import { REFRESH_TOKEN_KEY, TOKEN_KEY } from "@/lib/constants/app-constants";
 
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Something went wrong";
@@ -38,9 +38,7 @@ function* handleFetchMe() {
     yield put(setFetchMeSuccess(user));
   } catch (error) {
     yield put(setFetchMeFailure(getErrorMessage(error)));
-    const tokenGone =
-      !localStorage.getItem(TOKEN_KEY) || !localStorage.getItem(REFRESH_TOKEN_KEY);
-    if (tokenGone) {
+    if (!hasStoredAuthTokens()) {
       yield put(logout());
     }
   }

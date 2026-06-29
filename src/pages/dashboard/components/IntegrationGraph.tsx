@@ -19,15 +19,15 @@ import {
   setCachedConnectionStatus,
   setConnectingProvider,
 } from "@/lib/connectionCache";
-import { getToken, getUser } from "@/models/auth-model/selectors";
-import { API_URL } from "@/pages/dashboard/api";
+import { getUser } from "@/models/auth-model/selectors";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 
-import { disconnectGmail, disconnectJira, disconnectSlack } from "../api";
+import { disconnectGmail, disconnectJira, disconnectSlack, getIntegrationConnectUrl } from "../api";
 import { useConnections } from "../hooks/useConnections";
 import { getConnectTimedOut } from "../selectors";
 import { triggerFetchStatus } from "../sagaActions";
-import { clearConnectTimedOut, setConnectTimedOut, setConnecting, setFetchStatusSuccess } from "../slice";
+import { clearConnectTimedOut, setConnectTimedOut, setConnecting, setFetchStatusFailure, setFetchStatusSuccess } from "../slice";
+import { ensureFreshAccessToken } from "@/services/api";
 
 import ConnectionStatusStrip from "./ConnectionStatusStrip";
 import { graphNodeTypes, INTEGRATION_STYLES } from "./integrationGraph/nodes";
@@ -41,7 +41,6 @@ import {
   POSITIONS_STORAGE_KEY,
 } from "./integrationGraph/types";
 
-const REDIRECT_DELAY_MS = 600;
 const REDIRECT_STUCK_MS = 15_000;
 
 function loadPositions(): Record<string, { x: number; y: number }> {
@@ -67,7 +66,6 @@ function integrationFromConnection(connection: Connection): IntegrationId | null
 
 export default function IntegrationGraph() {
   const dispatch = useAppDispatch();
-  const token = useAppSelector(getToken);
   const user = useAppSelector(getUser);
   const { status, refreshing, error, connecting } = useConnections();
   const connectTimedOut = useAppSelector(getConnectTimedOut);
@@ -89,24 +87,36 @@ export default function IntegrationGraph() {
   const disconnectHandlers = useMemo(
     () => ({
       gmail: async () => {
-        await disconnectGmail();
-        dispatch(triggerFetchStatus());
+        try {
+          await disconnectGmail();
+          dispatch(triggerFetchStatus());
+        } catch (err) {
+          dispatch(setFetchStatusFailure(err instanceof Error ? err.message : "Failed to disconnect Gmail"));
+        }
       },
       slack: async () => {
-        const nextStatus = await disconnectSlack();
-        applyStatus(nextStatus);
+        try {
+          const nextStatus = await disconnectSlack();
+          applyStatus(nextStatus);
+        } catch (err) {
+          dispatch(setFetchStatusFailure(err instanceof Error ? err.message : "Failed to disconnect Slack"));
+        }
       },
       jira: async () => {
-        await disconnectJira();
-        dispatch(triggerFetchStatus());
+        try {
+          await disconnectJira();
+          dispatch(triggerFetchStatus());
+        } catch (err) {
+          dispatch(setFetchStatusFailure(err instanceof Error ? err.message : "Failed to disconnect Jira"));
+        }
       },
     }),
     [applyStatus, dispatch],
   );
 
   const beginConnect = useCallback(
-    (id: IntegrationId) => {
-      if (!token || redirecting || connecting) return;
+    async (id: IntegrationId) => {
+      if (redirecting || connecting) return;
 
       const meta = integrationStatus(id, displayStatus);
       if (!meta.connectable) return;
@@ -122,26 +132,29 @@ export default function IntegrationGraph() {
       dispatch(setConnecting(id));
       setConnectingProvider(id);
 
-      const redirectTimer = window.setTimeout(() => {
-        window.location.href =
-          id === "gmail"
-            ? `${API_URL}/gmail/connect?token=${encodeURIComponent(token)}`
-            : id === "slack"
-              ? `${API_URL}/slack/install?token=${encodeURIComponent(token)}`
-              : `${API_URL}/jira/connect?token=${encodeURIComponent(token)}`;
-      }, REDIRECT_DELAY_MS);
-
-      window.setTimeout(() => {
+      const stuckTimer = window.setTimeout(() => {
         if (document.visibilityState === "visible") {
-          window.clearTimeout(redirectTimer);
           setRedirecting(false);
           dispatch(setConnecting(null));
           clearConnectingProvider();
           dispatch(setConnectTimedOut(id));
         }
       }, REDIRECT_STUCK_MS);
+
+      try {
+        await ensureFreshAccessToken();
+        const url = await getIntegrationConnectUrl(id);
+        window.clearTimeout(stuckTimer);
+        window.location.href = url;
+      } catch {
+        window.clearTimeout(stuckTimer);
+        setRedirecting(false);
+        dispatch(setConnecting(null));
+        clearConnectingProvider();
+        dispatch(setConnectTimedOut(id));
+      }
     },
-    [connecting, dispatch, displayStatus, redirecting, token],
+    [connecting, dispatch, displayStatus, redirecting],
   );
 
   const buildNodes = useCallback((): Node[] => {

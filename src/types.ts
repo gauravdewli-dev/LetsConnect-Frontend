@@ -98,3 +98,7 @@ export interface ChatHistoryResponse {
   messages: StoredChatMessage[];
   next_cursor: string | null;
 }
+
+export interface ConnectUrlResponse {
+  url: string;
+}

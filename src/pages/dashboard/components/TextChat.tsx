@@ -67,12 +67,22 @@ export default function TextChat() {
 
   const slackSyncKey = `${slackConnected}:${slackSendAsUser}`;
   const slackSyncKeyRef = useRef(slackSyncKey);
+  const prevSlackConnectedRef = useRef(slackConnected);
 
   useEffect(() => {
+    const wasConnected = prevSlackConnectedRef.current;
+    prevSlackConnectedRef.current = slackConnected;
+
+    if (wasConnected && !slackConnected) {
+      setMessages([]);
+      setConversationId(null);
+      setError(null);
+    }
+
     if (historyLoading || slackSyncKeyRef.current === slackSyncKey) return;
     slackSyncKeyRef.current = slackSyncKey;
     void loadHistory();
-  }, [historyLoading, loadHistory, slackSyncKey]);
+  }, [historyLoading, loadHistory, slackConnected, slackSyncKey]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });

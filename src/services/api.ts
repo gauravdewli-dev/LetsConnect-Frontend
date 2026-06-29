@@ -1,5 +1,6 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
 
+import { persistAuthTokens } from "@/lib/authSession";
 import { API_URL, REFRESH_TOKEN_KEY, TOKEN_KEY } from "@/lib/constants/app-constants";
 import type { ApiErrorBody, TokenResponse } from "@/types";
 
@@ -11,7 +12,7 @@ const apiService = axios.create({
 
 let refreshPromise: Promise<string | null> | null = null;
 
-async function refreshAccessToken(): Promise<string | null> {
+export async function refreshAccessToken(): Promise<string | null> {
   const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
   if (!refreshToken) return null;
 
@@ -21,14 +22,20 @@ async function refreshAccessToken(): Promise<string | null> {
       { refresh_token: refreshToken },
       { headers: { "Content-Type": "application/json" } },
     );
-    localStorage.setItem(TOKEN_KEY, data.access_token);
-    localStorage.setItem(REFRESH_TOKEN_KEY, data.refresh_token);
+    persistAuthTokens(data.access_token, data.refresh_token);
     return data.access_token;
   } catch {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     return null;
   }
+}
+
+/** Refresh if possible before OAuth redirects or after returning from OAuth. */
+export async function ensureFreshAccessToken(): Promise<string | null> {
+  const existing = localStorage.getItem(TOKEN_KEY);
+  if (!existing) return refreshAccessToken();
+  return existing;
 }
 
 apiService.interceptors.request.use((config) => {
