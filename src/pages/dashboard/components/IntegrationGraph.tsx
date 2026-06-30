@@ -122,7 +122,8 @@ export default function IntegrationGraph() {
       if (!meta.connectable) return;
       if (
         meta.connected &&
-        !(id === "slack" && displayStatus.slack_connected && !displayStatus.slack_send_as_user)
+        !(id === "slack" && displayStatus.slack_connected && !displayStatus.slack_send_as_user) &&
+        !(id === "gmail" && displayStatus.gmail_connected && !displayStatus.calendar_connected)
       ) {
         return;
       }
@@ -227,9 +228,13 @@ export default function IntegrationGraph() {
       });
     };
 
-    addEdge("gmail", displayStatus.gmail_connected);
+    addEdge("gmail", displayStatus.calendar_connected);
     addEdge("slack", displayStatus.slack_connected && displayStatus.slack_send_as_user);
     addEdge("jira", displayStatus.jira_connected);
+
+    if (displayStatus.gmail_connected && !displayStatus.calendar_connected) {
+      addEdge("gmail", true, true);
+    }
 
     if (displayStatus.slack_connected && !displayStatus.slack_send_as_user) {
       addEdge("slack", true, true);

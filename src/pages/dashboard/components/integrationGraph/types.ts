@@ -99,7 +99,7 @@ export function hubIdentity(status: ConnectionStatusResponse, fallbackEmail?: st
 export function integrationLinked(id: IntegrationId, status: ConnectionStatusResponse): boolean {
   switch (id) {
     case "gmail":
-      return status.gmail_connected;
+      return status.gmail_connected && status.calendar_connected;
     case "slack":
       return status.slack_connected;
     case "jira":
@@ -119,16 +119,23 @@ export function integrationStatus(
   warning?: string;
 } {
   switch (id) {
-    case "gmail":
+    case "gmail": {
+      const needsCalendar = status.gmail_connected && !status.calendar_connected;
       return {
-        connected: status.gmail_connected,
+        connected: status.gmail_connected && status.calendar_connected,
         connectable: true,
-        subtitle: "Drag to LetsConnect",
+        subtitle: needsCalendar
+          ? "Enable Calendar"
+          : status.gmail_connected
+            ? "Connected"
+            : "Drag to LetsConnect",
         username: status.gmail_connected
           ? status.gmail_display_name || (status.gmail_email ? nameFromEmail(status.gmail_email) : undefined)
           : undefined,
         detail: status.gmail_connected ? status.gmail_email || undefined : undefined,
+        warning: needsCalendar ? "Reconnect" : undefined,
       };
+    }
     case "slack": {
       const ready = status.slack_connected && status.slack_send_as_user;
       const needsReconnect = status.slack_connected && !status.slack_send_as_user;

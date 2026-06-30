@@ -16,6 +16,7 @@ function getErrorMessage(error: unknown): string {
 
 function needsProfileBackfill(status: ConnectionStatusResponse): boolean {
   if (status.gmail_connected && !status.gmail_display_name) return true;
+  if (status.gmail_connected && !status.calendar_connected) return true;
   if (status.slack_connected && status.slack_send_as_user && !status.slack_display_name) {
     return true;
   }

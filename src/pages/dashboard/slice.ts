@@ -20,7 +20,7 @@ function isIntegrationConnected(
   provider: NonNullable<ConnectionsState["connecting"]>,
   status: ConnectionStatusResponse,
 ): boolean {
-  if (provider === "gmail") return status.gmail_connected;
+  if (provider === "gmail") return status.gmail_connected && status.calendar_connected;
   if (provider === "jira") return status.jira_connected;
   return status.slack_connected && status.slack_send_as_user;
 }
