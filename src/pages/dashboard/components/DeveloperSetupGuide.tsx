@@ -30,10 +30,12 @@ export default function DeveloperSetupGuide() {
             {status?.gmail_connected && <Badge variant="success">Connected</Badge>}
           </div>
           <p className="text-xs">
-            Place Google OAuth credentials at{" "}
+            Enable <strong>Gmail API</strong> and <strong>Google Calendar API</strong> in Google Cloud.
+            Place OAuth credentials at{" "}
             <code className="text-xs">GMAIL_CREDENTIALS_PATH</code> (default{" "}
             <code className="text-xs">./credentials.json</code>). OAuth redirect:{" "}
-            <code className="rounded bg-muted px-1 text-xs">{API_URL}/oauth/callback</code>
+            <code className="rounded bg-muted px-1 text-xs">{API_URL}/oauth/callback</code>.
+            Reconnect Gmail if calendar scheduling fails with a permissions error.
           </p>
         </section>
 

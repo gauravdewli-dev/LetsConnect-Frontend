@@ -13,8 +13,9 @@ import { AssistantMessage, TypingIndicator, UserMessage } from "./chat/ChatMessa
 
 const SUGGESTIONS = [
   "Show my connected workspace and integrations",
+  "What's on my calendar this week?",
+  "Schedule a meeting tomorrow at 3pm with a Google Meet link",
   "Summarize unread emails in my inbox",
-  "Draft a direct message to send on Slack",
   "Show Jira tickets assigned to me",
 ];
 

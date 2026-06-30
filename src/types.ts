@@ -15,6 +15,7 @@ export interface ConnectionStatusResponse {
   gmail_connected: boolean;
   gmail_email: string | null;
   gmail_display_name: string | null;
+  calendar_connected: boolean;
   slack_connected: boolean;
   slack_configured: boolean;
   slack_send_as_user: boolean;

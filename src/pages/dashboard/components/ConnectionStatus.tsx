@@ -25,6 +25,17 @@ export default function ConnectionStatus() {
         detail={status.gmail_connected ? status.gmail_email || "Connected" : "Not connected"}
       />
       <StatusRow
+        label="Google Calendar"
+        connected={status.calendar_connected}
+        detail={
+          status.calendar_connected
+            ? "Connected"
+            : status.gmail_connected
+              ? "Reconnect Gmail for calendar"
+              : "Not connected"
+        }
+      />
+      <StatusRow
         label="Slack"
         connected={status.slack_connected}
         detail={status.slack_connected ? "Connected" : "Not connected"}

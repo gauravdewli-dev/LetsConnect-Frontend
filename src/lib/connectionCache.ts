@@ -13,6 +13,7 @@ export const DEFAULT_CONNECTION_STATUS: ConnectionStatusResponse = {
   gmail_connected: false,
   gmail_email: null,
   gmail_display_name: null,
+  calendar_connected: false,
   slack_connected: false,
   slack_configured: false,
   slack_send_as_user: false,
