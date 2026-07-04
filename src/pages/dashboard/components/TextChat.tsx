@@ -3,6 +3,7 @@ import { RefreshCw, Send, Sparkles } from "lucide-react";
 
 import { LOGO_SRC } from "@/atoms/Logo";
 import { Button } from "@/atoms/ui/button";
+import SlowLoadingNotice from "@/molecules/SlowLoadingNotice";
 import type { ChatMessage, StoredChatMessage } from "@/types";
 
 import { getChatMessages, postChat } from "../api";
@@ -274,6 +275,8 @@ export default function TextChat() {
           Enter to send · Shift+Enter for new line
         </p>
       </div>
+
+      <SlowLoadingNotice active={loading || historyLoading} />
     </div>
   );
 }
