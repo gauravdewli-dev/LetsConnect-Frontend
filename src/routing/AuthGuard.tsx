@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { hasStoredAuthTokens } from "@/lib/authSession";
 import { readDashboardTabFromSearch } from "@/lib/dashboardTab";
 import { REFRESH_TOKEN_KEY } from "@/lib/constants/app-constants";
+import ColdStartTour from "@/molecules/ColdStartTour";
 import { clearAuthError, logout } from "@/models/auth-model/slice";
 import { triggerFetchMe } from "@/models/auth-model/sagaActions";
 import {
@@ -17,6 +18,9 @@ import { refreshAccessToken } from "@/services/api";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 
 import AppSkeleton from "./AppSkeleton";
+
+/** Show Render free-tier popup only when /auth/me is still pending after this long. */
+const AUTH_ME_COLD_START_MS = 5000;
 
 interface AuthGuardProps {
   children: ReactNode;
@@ -76,7 +80,13 @@ export default function AuthGuard({ children }: AuthGuardProps) {
 
   if (!user) {
     const variant = readDashboardTabFromSearch(location.search) === "chat" ? "chat" : "dashboard";
-    return <AppSkeleton variant={variant} />;
+    const waitingOnMe = loading || hasStoredAuthTokens();
+    return (
+      <>
+        <AppSkeleton variant={variant} />
+        <ColdStartTour active={waitingOnMe} delayMs={AUTH_ME_COLD_START_MS} />
+      </>
+    );
   }
 
   return <>{children}</>;

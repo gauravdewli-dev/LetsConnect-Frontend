@@ -18,8 +18,8 @@ import { Button } from "@/atoms/ui/button";
 import { hasSeenColdStartTour, markColdStartTourSeen } from "@/lib/coldStartTour";
 import { cn } from "@/lib/utils";
 
-/** Show only after a sustained cold start (~6–7s). Tour itself is one-time via localStorage. */
-const SHOW_DELAY_MS = 6500;
+/** Show after /auth/me has been pending this long. Tour itself is one-time via localStorage. */
+const SHOW_DELAY_MS = 5000;
 
 type Slide = {
   eyebrow: string;
