@@ -4,7 +4,7 @@ import { X } from "lucide-react";
 import { LOGO_SRC } from "@/atoms/Logo";
 import { cn } from "@/lib/utils";
 
-import { GmailIcon, JiraIcon, SlackIcon } from "./brandIcons";
+import { GmailIcon, GitHubIcon, JiraIcon, SlackIcon } from "./brandIcons";
 import type { HubNodeData, HubSide, IntegrationNodeData } from "./types";
 import {
   hubSourceHandle,
@@ -29,12 +29,18 @@ const INTEGRATION_STYLES = {
     edge: "#3b82f6",
     pulse: "shadow-[0_0_0_4px_rgba(59,130,246,0.15)]",
   },
+  github: {
+    ring: "ring-zinc-400",
+    edge: "#181717",
+    pulse: "shadow-[0_0_0_4px_rgba(24,23,23,0.12)]",
+  },
 } as const;
 
 const INTEGRATION_ICONS = {
   gmail: GmailIcon,
   slack: SlackIcon,
   jira: JiraIcon,
+  github: GitHubIcon,
 } as const;
 
 const SIDES: { side: HubSide; position: Position }[] = [

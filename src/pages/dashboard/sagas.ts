@@ -21,6 +21,7 @@ function needsProfileBackfill(status: ConnectionStatusResponse): boolean {
     return true;
   }
   if (status.jira_connected && !status.jira_display_name) return true;
+  if (status.github_connected && !status.github_display_name) return true;
   return false;
 }
 

@@ -19,6 +19,7 @@ export default function IntegrationNodesSkeleton() {
         <GraphNodeSkeleton className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" />
         <GraphNodeSkeleton className="absolute left-[10%] top-[16%]" />
         <GraphNodeSkeleton className="absolute right-[10%] top-[16%]" />
+        <GraphNodeSkeleton className="absolute left-1/2 top-[6%] -translate-x-1/2" />
         <GraphNodeSkeleton className="absolute bottom-[14%] left-1/2 -translate-x-1/2" />
       </div>
     </div>

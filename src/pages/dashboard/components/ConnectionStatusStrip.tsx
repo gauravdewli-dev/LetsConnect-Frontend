@@ -1,4 +1,4 @@
-import { Bot, Check, Mail, MessageSquare, Ticket, X } from "lucide-react";
+import { Bot, Check, GitBranch, Mail, MessageSquare, Ticket, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { CONNECTING_LABELS, type ConnectingProvider } from "@/lib/connectionCache";
@@ -7,6 +7,7 @@ const PROVIDER_ICONS = {
   gmail: Mail,
   slack: MessageSquare,
   jira: Ticket,
+  github: GitBranch,
 } as const;
 
 interface ConnectionStatusStripProps {

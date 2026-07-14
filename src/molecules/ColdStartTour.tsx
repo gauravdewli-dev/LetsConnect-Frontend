@@ -5,6 +5,7 @@ import {
   ArrowRight,
   Calendar,
   Check,
+  GitBranch,
   Link2,
   Mail,
   MessageSquare,
@@ -33,7 +34,7 @@ const SLIDES: Slide[] = [
   {
     eyebrow: "While we wake up",
     title: "Meet LetsConnect",
-    body: "Your AI assistant for work tools — Gmail, Calendar, Slack, and Jira in one chat. We’re on Render’s free tier, so the first wake-up can take 30–60 seconds. Browse these tips while the server starts.",
+    body: "Your AI assistant for work tools — Gmail, Calendar, Slack, Jira, and GitHub in one chat. We’re on Render’s free tier, so the first wake-up can take 30–60 seconds. Browse these tips while the server starts.",
     visual: "welcome",
   },
   {
@@ -45,6 +46,7 @@ const SLIDES: Slide[] = [
       "Google Calendar — list and schedule meetings",
       "Slack — message teammates and read channels",
       "Jira — find, create, and update tickets",
+      "GitHub — repos, PRs, and Actions status",
     ],
     visual: "connect",
   },
@@ -57,18 +59,20 @@ const SLIDES: Slide[] = [
       "“What meetings do I have today?”",
       "“DM Alex that standup moved to 3pm”",
       "“Show my open bugs in PROJ”",
+      "“Show open PRs on owner/repo”",
     ],
     visual: "chat",
   },
   {
     eyebrow: "What you can do",
     title: "One place for the busywork",
-    body: "Search inboxes, schedule meetings, ping Slack, and manage Jira — without switching tabs all day.",
+    body: "Search inboxes, schedule meetings, ping Slack, manage Jira, and check GitHub — without switching tabs all day.",
     points: [
       "Summarize threads and draft replies",
       "Create calendar events with a sentence",
       "Send Slack DMs as you",
       "Create or update Jira issues from chat",
+      "List PRs and check Actions builds",
     ],
     visual: "actions",
   },
@@ -85,6 +89,7 @@ const CONNECT_ICONS: { label: string; icon: ComponentType<{ className?: string }
   { label: "Calendar", icon: Calendar },
   { label: "Slack", icon: MessageSquare },
   { label: "Jira", icon: Ticket },
+  { label: "GitHub", icon: GitBranch },
 ];
 
 type ColdStartTourProps = {
@@ -321,7 +326,7 @@ function SlideVisual({ kind }: { kind: Slide["visual"] }) {
   if (kind === "actions") {
     return (
       <div className="flex flex-wrap gap-2">
-        {["Inbox", "Calendar", "Slack", "Jira"].map((label, i) => (
+        {["Inbox", "Calendar", "Slack", "Jira", "GitHub"].map((label, i) => (
           <span
             key={label}
             className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs text-slate-100 ring-1 ring-white/10"

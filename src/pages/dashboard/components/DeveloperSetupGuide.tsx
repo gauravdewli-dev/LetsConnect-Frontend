@@ -13,6 +13,8 @@ import { useConnections } from "../hooks/useConnections";
 export default function DeveloperSetupGuide() {
   const { status } = useConnections();
   const callbackUrl = status?.jira_oauth_callback_url || `${API_URL}/jira/oauth/callback`;
+  const githubCallbackUrl =
+    status?.github_oauth_callback_url || `${API_URL}/github/oauth/callback`;
 
   return (
     <Card>
@@ -172,6 +174,59 @@ JIRA_CLIENT_SECRET=your-client-secret-here`}
             <code className="text-xs">redirect_uri is not registered</code> means the callback list
             is missing or truncated.
           </div>
+        </section>
+
+        <section className="space-y-3">
+          <div className="flex items-center gap-2">
+            <h3 className="font-medium text-foreground">GitHub (developer keys)</h3>
+            {status?.github_configured ? (
+              <Badge variant="success">Configured</Badge>
+            ) : (
+              <Badge variant="warning">Not configured</Badge>
+            )}
+          </div>
+          <p className="text-xs">
+            LetsConnect uses a GitHub OAuth App so users can link repos, PRs, and Actions from
+            Connected accounts. Register the app once and add keys to{" "}
+            <code className="text-xs">.env</code>.
+          </p>
+          <ol className="list-decimal space-y-2 pl-5">
+            <li>
+              Open{" "}
+              <a
+                href="https://github.com/settings/developers"
+                target="_blank"
+                rel="noreferrer"
+                className="text-primary underline"
+              >
+                github.com/settings/developers
+              </a>{" "}
+              → <strong>OAuth Apps</strong> → <strong>New OAuth App</strong>.
+            </li>
+            <li>
+              Set <strong>Authorization callback URL</strong> to exactly:
+              <div className="mt-1 rounded border border-indigo-200 bg-indigo-50 px-2 py-1 font-mono text-xs break-all text-indigo-950">
+                {githubCallbackUrl}
+              </div>
+            </li>
+            <li>
+              Prefer enabling <strong>Expire user authorization tokens</strong> so refresh tokens
+              work. Requested scopes: <code className="text-xs">repo</code>,{" "}
+              <code className="text-xs">read:user</code>, <code className="text-xs">workflow</code>.
+            </li>
+            <li>
+              Copy <strong>Client ID</strong> and generate a <strong>Client secret</strong>, then add
+              to <code className="text-xs">LC-Backend/.env</code>:
+              <pre className="mt-2 overflow-x-auto rounded bg-muted p-3 text-xs text-foreground">
+{`GITHUB_CLIENT_ID=your-client-id-here
+GITHUB_CLIENT_SECRET=your-client-secret-here`}
+              </pre>
+            </li>
+            <li>
+              Restart the backend, then drag <strong>GitHub</strong> to LetsConnect on Connected
+              accounts.
+            </li>
+          </ol>
         </section>
       </CardContent>
     </Card>

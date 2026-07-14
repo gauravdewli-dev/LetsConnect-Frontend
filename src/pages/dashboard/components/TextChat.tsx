@@ -17,6 +17,8 @@ const SUGGESTIONS = [
   "Schedule a meeting tomorrow at 3pm with a Google Meet link",
   "Summarize unread emails in my inbox",
   "Show Jira tickets assigned to me",
+  "Show my open pull requests on GitHub",
+  "Check the latest GitHub Actions build status",
 ];
 
 function toChatMessage(record: StoredChatMessage): ChatMessage {
@@ -45,8 +47,9 @@ export default function TextChat() {
   const slackConnected = status?.slack_connected ?? false;
   const slackSendAsUser = status?.slack_send_as_user ?? false;
   const jiraConnected = status?.jira_connected ?? false;
+  const githubConnected = status?.github_connected ?? false;
   const slackSynced = slackConnected && slackSendAsUser;
-  const canChat = gmailConnected || slackSynced || jiraConnected;
+  const canChat = gmailConnected || slackSynced || jiraConnected || githubConnected;
 
   const loadHistory = useCallback(async () => {
     setHistoryLoading(true);
@@ -144,6 +147,7 @@ export default function TextChat() {
     gmailConnected && "Gmail",
     slackSynced && "Slack",
     jiraConnected && "Jira",
+    githubConnected && "GitHub",
   ]
     .filter(Boolean)
     .join(", ");
@@ -154,7 +158,7 @@ export default function TextChat() {
       ? slackSynced
         ? `Online · ${connectedTools} · synced with Slack`
         : `Online · ${connectedTools}`
-      : "Connect Gmail, Slack, or Jira to start chatting.";
+      : "Connect Gmail, Slack, Jira, or GitHub to start chatting.";
 
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col bg-slate-50/50">
@@ -195,7 +199,7 @@ export default function TextChat() {
               </div>
               <p className="text-lg font-semibold">How can I help today?</p>
               <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-                Search email, send Slack messages, manage Jira tickets, and more — all in one place.
+                Search email, send Slack messages, manage Jira tickets, check GitHub PRs — all in one place.
               </p>
               <div className="mt-8 grid w-full max-w-lg gap-2 sm:grid-cols-2">
                 {SUGGESTIONS.map((suggestion) => (

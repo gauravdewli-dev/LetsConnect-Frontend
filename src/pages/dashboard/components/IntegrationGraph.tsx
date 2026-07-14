@@ -22,7 +22,7 @@ import {
 import { getUser } from "@/models/auth-model/selectors";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 
-import { disconnectGmail, disconnectJira, disconnectSlack, getIntegrationConnectUrl } from "../api";
+import { disconnectGmail, disconnectGithub, disconnectJira, disconnectSlack, getIntegrationConnectUrl } from "../api";
 import { useConnections } from "../hooks/useConnections";
 import { getConnectTimedOut } from "../selectors";
 import { triggerFetchStatus } from "../sagaActions";
@@ -60,7 +60,7 @@ function savePositions(nodes: Node[]) {
 
 function integrationFromConnection(connection: Connection): IntegrationId | null {
   const peer = connection.source === "hub" ? connection.target : connection.source;
-  if (peer === "gmail" || peer === "slack" || peer === "jira") return peer;
+  if (peer === "gmail" || peer === "slack" || peer === "jira" || peer === "github") return peer;
   return null;
 }
 
@@ -108,6 +108,14 @@ export default function IntegrationGraph() {
           dispatch(triggerFetchStatus());
         } catch (err) {
           dispatch(setFetchStatusFailure(err instanceof Error ? err.message : "Failed to disconnect Jira"));
+        }
+      },
+      github: async () => {
+        try {
+          await disconnectGithub();
+          dispatch(triggerFetchStatus());
+        } catch (err) {
+          dispatch(setFetchStatusFailure(err instanceof Error ? err.message : "Failed to disconnect GitHub"));
         }
       },
     }),
@@ -172,11 +180,12 @@ export default function IntegrationGraph() {
       draggable: !connecting,
     };
 
-    const integrations: IntegrationId[] = ["gmail", "slack", "jira"];
+    const integrations: IntegrationId[] = ["gmail", "slack", "jira", "github"];
     const labels: Record<IntegrationId, string> = {
       gmail: "Gmail",
       slack: "Slack",
       jira: "Jira",
+      github: "GitHub",
     };
 
     const integrationNodes: Node[] = integrations.map((id) => {
@@ -231,6 +240,7 @@ export default function IntegrationGraph() {
     addEdge("gmail", displayStatus.calendar_connected);
     addEdge("slack", displayStatus.slack_connected && displayStatus.slack_send_as_user);
     addEdge("jira", displayStatus.jira_connected);
+    addEdge("github", displayStatus.github_connected);
 
     if (displayStatus.gmail_connected && !displayStatus.calendar_connected) {
       addEdge("gmail", true, true);
@@ -284,7 +294,7 @@ export default function IntegrationGraph() {
       const ids = [connection.source, connection.target];
       if (!ids.includes("hub")) return false;
       const integrationId = ids.find((id) => id !== "hub");
-      if (integrationId !== "gmail" && integrationId !== "slack" && integrationId !== "jira") {
+      if (integrationId !== "gmail" && integrationId !== "slack" && integrationId !== "jira" && integrationId !== "github") {
         return false;
       }
       return integrationStatus(integrationId, displayStatus).connectable;

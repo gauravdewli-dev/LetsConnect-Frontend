@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Bot, Mail, MessageSquare, Ticket } from "lucide-react";
+import { Bot, GitBranch, Mail, MessageSquare, Ticket } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
 import { Button } from "@/atoms/ui/button";
@@ -34,6 +34,7 @@ function DashboardPreview() {
             <div className="absolute left-[15%] top-[20%] size-28 rounded-2xl border bg-rose-50/80" />
             <div className="absolute right-[15%] top-[20%] size-28 rounded-2xl border bg-violet-50/80" />
             <div className="absolute bottom-[18%] left-1/2 size-28 -translate-x-1/2 rounded-2xl border bg-blue-50/80" />
+            <div className="absolute left-1/2 top-[8%] size-24 -translate-x-1/2 rounded-2xl border bg-zinc-100/90" />
           </div>
         </main>
       </div>
@@ -49,7 +50,10 @@ export default function Success() {
   const error = params.get("error");
 
   const provider: ConnectingProvider | null =
-    providerParam === "gmail" || providerParam === "slack" || providerParam === "jira"
+    providerParam === "gmail" ||
+    providerParam === "slack" ||
+    providerParam === "jira" ||
+    providerParam === "github"
       ? providerParam
       : null;
 
@@ -70,10 +74,26 @@ export default function Success() {
   }, [connected, error, provider]);
 
   const providerLabel =
-    provider === "gmail" ? "Gmail" : provider === "slack" ? "Slack" : provider === "jira" ? "Jira" : "Account";
+    provider === "gmail"
+      ? "Gmail"
+      : provider === "slack"
+        ? "Slack"
+        : provider === "jira"
+          ? "Jira"
+          : provider === "github"
+            ? "GitHub"
+            : "Account";
 
   const ProviderIcon =
-    provider === "gmail" ? Mail : provider === "slack" ? MessageSquare : provider === "jira" ? Ticket : Bot;
+    provider === "gmail"
+      ? Mail
+      : provider === "slack"
+        ? MessageSquare
+        : provider === "jira"
+          ? Ticket
+          : provider === "github"
+            ? GitBranch
+            : Bot;
 
   return (
     <div className="relative min-h-screen">

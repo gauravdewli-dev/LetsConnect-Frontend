@@ -3,6 +3,7 @@ import {
   ArrowRight,
   Check,
   ExternalLink,
+  GitBranch,
   Mail,
   MessageSquare,
   Sparkles,
@@ -94,12 +95,36 @@ const TOUR: Record<ConnectingProvider, TourStep[]> = {
       body: "Open Text chat anytime to search tickets, create issues, or stay on top of your work.",
     },
   ],
+  github: [
+    {
+      title: "GitHub is connected",
+      body: "Work with your repos from chat — including private ones you can access.",
+      bullets: [
+        "List repositories and open pull requests",
+        "Create or merge PRs with confirmation",
+        "Check GitHub Actions build status",
+      ],
+    },
+    {
+      title: "Repos and Actions in chat",
+      body: "Ask in plain language. LetsConnect uses your GitHub account to read and act.",
+      preview: {
+        user: "Show open PRs on owner/repo and the latest Actions run",
+        assistant: "3 open PRs on owner/repo.\nLatest Actions run: #142 — success on main.\nWant details on a PR or another run?",
+      },
+    },
+    {
+      title: "You're all set",
+      body: "Open Text chat anytime to list PRs, raise a merge request, or check CI status.",
+    },
+  ],
 };
 
 const PROVIDER_META = {
   gmail: { label: "Gmail", icon: Mail, accent: "text-rose-600 bg-rose-50 ring-rose-100" },
   slack: { label: "Slack", icon: MessageSquare, accent: "text-violet-600 bg-violet-50 ring-violet-100" },
   jira: { label: "Jira", icon: Ticket, accent: "text-blue-600 bg-blue-50 ring-blue-100" },
+  github: { label: "GitHub", icon: GitBranch, accent: "text-zinc-700 bg-zinc-100 ring-zinc-200" },
 } as const;
 
 interface ConnectionSuccessTourProps {

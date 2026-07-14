@@ -1,6 +1,6 @@
 import type { ConnectionStatusResponse } from "@/types";
 
-export type IntegrationId = "gmail" | "slack" | "jira";
+export type IntegrationId = "gmail" | "slack" | "jira" | "github";
 
 export type HubSide = "top" | "left" | "right" | "bottom";
 
@@ -9,6 +9,7 @@ export const HUB_HANDLE_BY_INTEGRATION: Record<IntegrationId, HubSide> = {
   gmail: "left",
   slack: "right",
   jira: "bottom",
+  github: "top",
 };
 
 /** Integration handle that faces the hub for each default layout. */
@@ -16,6 +17,7 @@ export const INTEGRATION_HANDLE_BY_ID: Record<IntegrationId, HubSide> = {
   gmail: "right",
   slack: "left",
   jira: "top",
+  github: "bottom",
 };
 
 export function hubSourceHandle(side: HubSide): string {
@@ -83,6 +85,8 @@ export function hubIdentity(status: ConnectionStatusResponse, fallbackEmail?: st
     status.gmail_display_name ||
     (status.slack_connected ? status.slack_display_name : null) ||
     status.jira_display_name ||
+    status.github_display_name ||
+    status.github_login ||
     (status.gmail_email ? nameFromEmail(status.gmail_email) : null) ||
     (fallbackEmail ? nameFromEmail(fallbackEmail) : null);
 
@@ -91,6 +95,7 @@ export function hubIdentity(status: ConnectionStatusResponse, fallbackEmail?: st
     fallbackEmail ||
     (status.slack_connected ? status.slack_team_name : null) ||
     status.jira_site_name ||
+    (status.github_connected ? `@${status.github_login}` : null) ||
     "Your assistant";
 
   return { username: username ?? undefined, subtitle: subtitle ?? "Your assistant" };
@@ -104,6 +109,8 @@ export function integrationLinked(id: IntegrationId, status: ConnectionStatusRes
       return status.slack_connected;
     case "jira":
       return status.jira_connected;
+    case "github":
+      return status.github_connected;
   }
 }
 
@@ -163,6 +170,21 @@ export function integrationStatus(
           : undefined,
         warning: !status.jira_configured ? "Dev setup" : undefined,
       };
+    case "github":
+      return {
+        connected: status.github_connected,
+        connectable: status.github_configured,
+        subtitle: status.github_configured ? "Drag to LetsConnect" : "Not configured",
+        username: status.github_connected
+          ? status.github_display_name || status.github_login || undefined
+          : undefined,
+        detail: status.github_connected
+          ? status.github_login
+            ? `@${status.github_login}`
+            : undefined
+          : undefined,
+        warning: !status.github_configured ? "Dev setup" : undefined,
+      };
   }
 }
 
@@ -173,4 +195,5 @@ export const DEFAULT_POSITIONS: Record<string, { x: number; y: number }> = {
   gmail: { x: 80, y: 80 },
   slack: { x: 560, y: 80 },
   jira: { x: 320, y: 420 },
+  github: { x: 320, y: 40 },
 };

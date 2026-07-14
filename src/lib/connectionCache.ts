@@ -4,7 +4,7 @@ const STATUS_CACHE_KEY = "lc-connection-status";
 const CONNECTING_KEY = "lc-connecting";
 const CONNECTING_STARTED_KEY = "lc-connecting-started-at";
 
-export type ConnectingProvider = "gmail" | "slack" | "jira";
+export type ConnectingProvider = "gmail" | "slack" | "jira" | "github";
 
 /** Abandon in-progress sign-in after 1 minute if OAuth is not completed. */
 export const CONNECTING_TIMEOUT_MS = 60 * 1000;
@@ -27,6 +27,11 @@ export const DEFAULT_CONNECTION_STATUS: ConnectionStatusResponse = {
   jira_display_name: null,
   jira_configured: false,
   jira_oauth_callback_url: null,
+  github_connected: false,
+  github_login: null,
+  github_display_name: null,
+  github_configured: false,
+  github_oauth_callback_url: null,
 };
 
 export function getCachedConnectionStatus(): ConnectionStatusResponse | null {
@@ -45,7 +50,9 @@ export function setCachedConnectionStatus(status: ConnectionStatusResponse): voi
 
 function readConnectingProviderRaw(): ConnectingProvider | null {
   const value = sessionStorage.getItem(CONNECTING_KEY);
-  if (value === "gmail" || value === "slack" || value === "jira") return value;
+  if (value === "gmail" || value === "slack" || value === "jira" || value === "github") {
+    return value;
+  }
   return null;
 }
 
@@ -102,4 +109,5 @@ export const CONNECTING_LABELS: Record<ConnectingProvider, string> = {
   gmail: "Gmail",
   slack: "Slack",
   jira: "Jira",
+  github: "GitHub",
 };

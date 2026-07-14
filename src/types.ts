@@ -29,6 +29,11 @@ export interface ConnectionStatusResponse {
   jira_display_name: string | null;
   jira_configured: boolean;
   jira_oauth_callback_url: string | null;
+  github_connected: boolean;
+  github_login: string | null;
+  github_display_name: string | null;
+  github_configured: boolean;
+  github_oauth_callback_url: string | null;
 }
 
 export interface ApiErrorDetail {
@@ -52,8 +57,8 @@ export interface ConnectionsState {
   loading: boolean;
   refreshing: boolean;
   error: string | null;
-  connecting: "gmail" | "slack" | "jira" | null;
-  connectTimedOut: "gmail" | "slack" | "jira" | null;
+  connecting: "gmail" | "slack" | "jira" | "github" | null;
+  connectTimedOut: "gmail" | "slack" | "jira" | "github" | null;
 }
 
 export interface LoginPayload {

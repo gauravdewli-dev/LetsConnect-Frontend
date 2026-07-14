@@ -23,6 +23,7 @@ function isProviderConnected(
   if (!status) return false;
   if (provider === "gmail") return status.gmail_connected && status.calendar_connected;
   if (provider === "jira") return status.jira_connected;
+  if (provider === "github") return status.github_connected;
   return status.slack_connected && status.slack_send_as_user;
 }
 

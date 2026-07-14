@@ -20,7 +20,9 @@ export const getChatMessages = (params?: { limit?: number; before?: string }) =>
     .get<ChatHistoryResponse>("/api/chat/messages", { params })
     .then((r) => r.data);
 
-export const getIntegrationConnectUrl = (provider: "gmail" | "slack" | "jira") =>
+export const getIntegrationConnectUrl = (
+  provider: "gmail" | "slack" | "jira" | "github",
+) =>
   apiService
     .get<ConnectUrlResponse>(`/api/integrations/${provider}/connect-url`)
     .then((r) => r.data.url);
@@ -36,5 +38,8 @@ export const disconnectSlack = () =>
 
 export const disconnectJira = () =>
   apiService.delete<{ message: string }>("/api/jira").then((r) => r.data);
+
+export const disconnectGithub = () =>
+  apiService.delete<{ message: string }>("/api/github").then((r) => r.data);
 
 export { API_URL };
