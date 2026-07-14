@@ -17,8 +17,9 @@ const SUGGESTIONS = [
   "Schedule a meeting tomorrow at 3pm with a Google Meet link",
   "Summarize unread emails in my inbox",
   "Show Jira tickets assigned to me",
-  "Show my open pull requests on GitHub",
-  "Check the latest GitHub Actions build status",
+  "Show open PRs I raised on GitHub",
+  "Show PRs waiting for my review on GitHub",
+  "Review my latest open PR — title, description, and link",
 ];
 
 function toChatMessage(record: StoredChatMessage): ChatMessage {

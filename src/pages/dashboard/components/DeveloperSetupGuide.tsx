@@ -212,7 +212,8 @@ JIRA_CLIENT_SECRET=your-client-secret-here`}
             <li>
               Prefer enabling <strong>Expire user authorization tokens</strong> so refresh tokens
               work. Requested scopes: <code className="text-xs">repo</code>,{" "}
-              <code className="text-xs">read:user</code>, <code className="text-xs">workflow</code>.
+              <code className="text-xs">read:user</code>, <code className="text-xs">read:org</code>,{" "}
+              <code className="text-xs">workflow</code>.
             </li>
             <li>
               Copy <strong>Client ID</strong> and generate a <strong>Client secret</strong>, then add
