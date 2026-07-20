@@ -1,5 +1,5 @@
-import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
-import { RefreshCw, Send, Sparkles } from "lucide-react";
+import { type FormEvent, type UIEvent, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Loader2, RefreshCw, Send, Sparkles } from "lucide-react";
 
 import { LOGO_SRC } from "@/atoms/Logo";
 import { Button } from "@/atoms/ui/button";
@@ -22,8 +22,13 @@ const SUGGESTIONS = [
   "Review my latest open PR — title, description, and link",
 ];
 
+const SCROLL_TOP_THRESHOLD_PX = 80;
+/** Latest / older pages are always this size — one request at a time. */
+const CHAT_PAGE_SIZE = 10;
+
 function toChatMessage(record: StoredChatMessage): ChatMessage {
   return {
+    id: record.id,
     role: record.role,
     content: record.content,
     toolsUsed: record.tools_used.length > 0 ? record.tools_used : undefined,
@@ -32,17 +37,33 @@ function toChatMessage(record: StoredChatMessage): ChatMessage {
   };
 }
 
+function prependUnique(older: ChatMessage[], current: ChatMessage[]): ChatMessage[] {
+  const seen = new Set(current.map((m) => m.id).filter(Boolean));
+  const unique = older.filter((m) => !m.id || !seen.has(m.id));
+  return unique.length === 0 ? current : [...unique, ...current];
+}
+
 export default function TextChat() {
   const { status } = useConnections();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [conversationId, setConversationId] = useState<string | null>(null);
+  /** ISO timestamp cursor for the next older page; null = reached first message in DB. */
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [historyLoading, setHistoryLoading] = useState(true);
   const [historyError, setHistoryError] = useState<string | null>(null);
+  const [loadingOlder, setLoadingOlder] = useState(false);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const stickToBottomRef = useRef(true);
+  const loadingOlderRef = useRef(false);
+  const nextCursorRef = useRef<string | null>(null);
+  /** True only after user scrolls up from the bottom — prevents open-chat `before` calls. */
+  const userScrolledUpRef = useRef(false);
+  /** When set, restore this scroll position after older messages are prepended (no jump). */
+  const scrollAnchorRef = useRef<{ height: number; top: number } | null>(null);
 
   const gmailConnected = status?.gmail_connected ?? false;
   const slackConnected = status?.slack_connected ?? false;
@@ -52,17 +73,56 @@ export default function TextChat() {
   const slackSynced = slackConnected && slackSendAsUser;
   const canChat = gmailConnected || slackSynced || jiraConnected || githubConnected;
 
+  /** Open chat: latest 10 only — no `before` filter. */
   const loadHistory = useCallback(async () => {
+    userScrolledUpRef.current = false;
+    scrollAnchorRef.current = null;
+    stickToBottomRef.current = true;
     setHistoryLoading(true);
     setHistoryError(null);
     try {
-      const data = await getChatMessages();
+      const data = await getChatMessages({ limit: CHAT_PAGE_SIZE });
       setConversationId(data.conversation_id);
       setMessages(data.messages.map(toChatMessage));
+      setNextCursor(data.next_cursor);
+      nextCursorRef.current = data.next_cursor;
+      stickToBottomRef.current = true;
     } catch (err) {
       setHistoryError(err instanceof Error ? err.message : "Failed to load chat history");
     } finally {
       setHistoryLoading(false);
+    }
+  }, []);
+
+  /**
+   * Scroll-up: next older batch of 10 using `before` (oldest timestamp of current page).
+   * Continues until `next_cursor` is null (start of conversation in DB).
+   */
+  const loadOlderMessages = useCallback(async () => {
+    const before = nextCursorRef.current;
+    if (!before || loadingOlderRef.current || !userScrolledUpRef.current) return;
+
+    const container = scrollRef.current;
+    scrollAnchorRef.current = {
+      height: container?.scrollHeight ?? 0,
+      top: container?.scrollTop ?? 0,
+    };
+
+    loadingOlderRef.current = true;
+    setLoadingOlder(true);
+    stickToBottomRef.current = false;
+
+    try {
+      const data = await getChatMessages({ limit: CHAT_PAGE_SIZE, before });
+      const older = data.messages.map(toChatMessage);
+      setMessages((prev) => prependUnique(older, prev));
+      setNextCursor(data.next_cursor);
+      nextCursorRef.current = data.next_cursor;
+    } catch {
+      scrollAnchorRef.current = null;
+    } finally {
+      loadingOlderRef.current = false;
+      setLoadingOlder(false);
     }
   }, []);
 
@@ -81,6 +141,10 @@ export default function TextChat() {
     if (wasConnected && !slackConnected) {
       setMessages([]);
       setConversationId(null);
+      setNextCursor(null);
+      nextCursorRef.current = null;
+      userScrolledUpRef.current = false;
+      scrollAnchorRef.current = null;
       setError(null);
     }
 
@@ -89,21 +153,58 @@ export default function TextChat() {
     void loadHistory();
   }, [historyLoading, loadHistory, slackConnected, slackSyncKey]);
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading]);
+  // Scroll only when sticking to bottom (open / send). Never auto-scroll when loading older.
+  useLayoutEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const anchor = scrollAnchorRef.current;
+    if (anchor) {
+      el.scrollTop = anchor.top + (el.scrollHeight - anchor.height);
+      scrollAnchorRef.current = null;
+      return;
+    }
+
+    if (loadingOlderRef.current || !stickToBottomRef.current) return;
+    el.scrollTop = el.scrollHeight;
+  }, [messages, loading, historyLoading]);
+
+  function handleScroll(e: UIEvent<HTMLDivElement>) {
+    if (loadingOlderRef.current || scrollAnchorRef.current) return;
+
+    const el = e.currentTarget;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    stickToBottomRef.current = distanceFromBottom < 100;
+
+    if (distanceFromBottom > 120) {
+      userScrolledUpRef.current = true;
+    }
+
+    if (userScrolledUpRef.current && el.scrollTop <= SCROLL_TOP_THRESHOLD_PX) {
+      void loadOlderMessages();
+    }
+  }
 
   async function sendMessage(text: string) {
     const trimmed = text.trim();
     if (!trimmed || loading || !canChat || historyLoading) return;
 
     const now = Date.now();
-    const userMessage: ChatMessage = { role: "user", content: trimmed, sentAt: now, channel: "web" };
+    const userMessage: ChatMessage = {
+      id: `local-user-${now}`,
+      role: "user",
+      content: trimmed,
+      sentAt: now,
+      channel: "web",
+    };
     const nextMessages = [...messages, userMessage];
     setMessages(nextMessages);
     setInput("");
     setError(null);
     setLoading(true);
+    stickToBottomRef.current = true;
+    userScrolledUpRef.current = false;
+    scrollAnchorRef.current = null;
 
     try {
       const response = await postChat({
@@ -114,6 +215,7 @@ export default function TextChat() {
       setMessages([
         ...nextMessages,
         {
+          id: `local-assistant-${Date.now()}`,
           role: "assistant",
           content: response.reply,
           toolsUsed: response.tools_used,
@@ -173,8 +275,12 @@ export default function TextChat() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-6 md:px-8">
-        <div className="mx-auto flex max-w-3xl flex-col gap-4">
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 py-6 md:px-8"
+      >
+        <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4">
           {historyLoading && <ChatHistorySkeleton slackSynced={slackSynced} />}
 
           {!historyLoading && historyError && (
@@ -191,6 +297,21 @@ export default function TextChat() {
                 Try again
               </Button>
             </div>
+          )}
+
+          {!historyLoading && !historyError && loadingOlder && (
+            <div className="flex items-center justify-center gap-2 py-3">
+              <div className="flex items-center gap-2 rounded-full border border-slate-200/80 bg-white px-3 py-1.5 text-xs text-muted-foreground shadow-sm">
+                <Loader2 className="size-3.5 animate-spin text-indigo-500" />
+                Loading earlier messages…
+              </div>
+            </div>
+          )}
+
+          {!historyLoading && !historyError && !loadingOlder && !nextCursor && messages.length > 0 && (
+            <p className="py-1 text-center text-[11px] text-muted-foreground/70">
+              Beginning of conversation
+            </p>
           )}
 
           {!historyLoading && !historyError && messages.length === 0 && (
@@ -223,14 +344,14 @@ export default function TextChat() {
             messages.map((msg, index) =>
               msg.role === "user" ? (
                 <UserMessage
-                  key={`${msg.role}-${index}`}
+                  key={msg.id ?? `${msg.role}-${msg.sentAt ?? index}`}
                   content={msg.content}
                   timestamp={msg.sentAt}
                   channel={msg.channel}
                 />
               ) : (
                 <AssistantMessage
-                  key={`${msg.role}-${index}`}
+                  key={msg.id ?? `${msg.role}-${msg.sentAt ?? index}`}
                   content={msg.content}
                   timestamp={msg.sentAt}
                   channel={msg.channel}
@@ -239,7 +360,6 @@ export default function TextChat() {
             )}
 
           {loading && <TypingIndicator />}
-          <div ref={bottomRef} />
         </div>
       </div>
 

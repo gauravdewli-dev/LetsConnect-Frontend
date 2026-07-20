@@ -9,9 +9,27 @@ interface UserMessageProps {
   channel?: "web" | "slack";
 }
 
-function formatTime(ts?: number) {
+function formatTimestamp(ts?: number) {
   if (!ts) return null;
-  return new Date(ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  const date = new Date(ts);
+  const now = new Date();
+  const sameDay =
+    date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth() &&
+    date.getDate() === now.getDate();
+
+  if (sameDay) {
+    return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  }
+
+  const sameYear = date.getFullYear() === now.getFullYear();
+  return date.toLocaleString([], {
+    month: "short",
+    day: "numeric",
+    ...(sameYear ? {} : { year: "numeric" }),
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 function ChannelLabel({ channel }: { channel?: "web" | "slack" }) {
@@ -34,7 +52,7 @@ export function UserMessage({ content, timestamp, channel }: UserMessageProps) {
         <div className="flex items-center gap-1.5 px-1">
           <ChannelLabel channel={channel} />
           {timestamp && (
-            <span className="text-[10px] text-muted-foreground">{formatTime(timestamp)}</span>
+            <span className="text-[10px] text-muted-foreground">{formatTimestamp(timestamp)}</span>
           )}
         </div>
       </div>
@@ -67,7 +85,7 @@ export function AssistantMessage({ content, timestamp, channel }: AssistantMessa
         {timestamp && (
           <div className="flex items-center gap-1.5 px-1">
             <ChannelLabel channel={channel} />
-            <span className="text-[10px] text-muted-foreground">{formatTime(timestamp)}</span>
+            <span className="text-[10px] text-muted-foreground">{formatTimestamp(timestamp)}</span>
           </div>
         )}
       </div>
