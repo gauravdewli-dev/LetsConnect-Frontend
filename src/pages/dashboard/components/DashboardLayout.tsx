@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 
 import type { DashboardTab } from "@/lib/dashboardTab";
 
+import { useConnections } from "../hooks/useConnections";
+
 export type { DashboardTab };
 
 interface DashboardLayoutProps {
@@ -33,6 +35,16 @@ export default function DashboardLayout({
   const menuRef = useRef<HTMLDivElement>(null);
   const activeItem = NAV_ITEMS.find((item) => item.id === activeTab) ?? NAV_ITEMS[0];
   const ActiveIcon = activeItem.icon;
+  const { status } = useConnections();
+  const gmailConnected = status?.gmail_connected ?? false;
+  const slackConnected = status?.slack_connected ?? false;
+  const slackSendAsUser = status?.slack_send_as_user ?? false;
+  const jiraConnected = status?.jira_connected ?? false;
+  const githubConnected = status?.github_connected ?? false;
+  const slackSynced = slackConnected && slackSendAsUser;
+  const canChat = gmailConnected || slackSynced || jiraConnected || githubConnected;
+  const slackReconnectNeeded = slackConnected && !slackSendAsUser;
+  const showChatOnline = activeTab === "chat" && canChat && !slackReconnectNeeded;
 
   useEffect(() => {
     setMenuOpen(false);
@@ -63,11 +75,19 @@ export default function DashboardLayout({
   }, [menuOpen]);
 
   return (
-    <div className="flex h-dvh flex-col bg-background md:flex-row">
+    <div className="flex h-dvh flex-col bg-background lg:flex-row">
       {/* Mobile top bar + menu */}
-      <header className="relative z-40 shrink-0 border-b bg-white md:hidden" ref={menuRef}>
+      <header className="relative z-40 shrink-0 border-b bg-white lg:hidden" ref={menuRef}>
         <div className="flex items-center justify-between gap-2 px-3 py-2.5 sm:px-4">
-          <Logo imageClassName="size-8" nameClassName="text-base" />
+        <div className="flex min-w-0 items-center gap-2">
+          <Logo showImage={false} nameClassName="text-base" />
+          {showChatOnline && (
+            <span className="inline-flex shrink-0 items-center gap-1.5 text-xs font-medium text-emerald-700">
+              <span className="size-1.5 rounded-full bg-emerald-500" aria-hidden />
+              Online
+            </span>
+          )}
+        </div>
 
           <div className="flex items-center gap-1.5">
             <button
@@ -113,7 +133,7 @@ export default function DashboardLayout({
                         setMenuOpen(false);
                       }}
                       className={cn(
-                        "flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-medium transition-colors",
+                        "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-colors",
                         selected
                           ? "bg-indigo-600 text-white shadow-sm"
                           : "text-foreground hover:bg-slate-50",
@@ -133,14 +153,14 @@ export default function DashboardLayout({
       {menuOpen && (
         <button
           type="button"
-          className="fixed inset-0 z-30 bg-slate-950/25 md:hidden"
+          className="fixed inset-0 z-30 bg-slate-950/25 lg:hidden"
           aria-label="Close menu"
           onClick={() => setMenuOpen(false)}
         />
       )}
 
       {/* Sidebar — desktop */}
-      <aside className="hidden w-60 shrink-0 flex-col border-r bg-slate-50/80 md:flex">
+      <aside className="hidden w-60 shrink-0 flex-col border-r bg-slate-50/80 lg:flex">
         <div className="flex h-[4.375rem] shrink-0 items-center border-b bg-white px-5">
           <Logo imageClassName="size-10" nameClassName="text-base" />
         </div>
