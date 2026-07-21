@@ -20,7 +20,7 @@ export default function Logo({
       <img
         src={LOGO_SRC}
         alt="LetsConnect"
-        className={cn("size-9 shrink-0 rounded-full object-cover", imageClassName)}
+        className={cn("size-7 rounded-full object-cover ring-2 ring-indigo-100 sm:size-10", imageClassName)}
       />
       {showName && (
         <span className={cn("font-semibold tracking-tight", nameClassName)}>LetsConnect</span>

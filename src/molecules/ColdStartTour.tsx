@@ -19,8 +19,12 @@ import { Button } from "@/atoms/ui/button";
 import { hasSeenColdStartTour, markColdStartTourSeen } from "@/lib/coldStartTour";
 import { cn } from "@/lib/utils";
 
-/** Show after /auth/me has been pending this long. Tour itself is one-time via localStorage. */
+/** Show after /auth/me has been pending this long. */
 const SHOW_DELAY_MS = 5000;
+
+/** Fixed card footprint — content swaps inside; body scrolls on small screens. */
+const CARD_CLASS =
+  "relative flex h-[min(90dvh,640px)] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-white/10 bg-white shadow-2xl shadow-slate-900/25 animate-[cold-tour-in_0.45s_ease-out]";
 
 type Slide = {
   eyebrow: string;
@@ -79,10 +83,16 @@ const SLIDES: Slide[] = [
   {
     eyebrow: "You’re ready",
     title: "Server’s waking — you’re set",
-    body: "When loading finishes, connect an account (or open Text chat) and try your first request. You won’t see this tour again.",
+    body: "When loading finishes, connect an account (or open Text chat) and try your first request. You won’t see this product tour again — we’ll still explain cold starts when Render is waking up.",
     visual: "ready",
   },
 ];
+
+const COLD_START_COPY = {
+  eyebrow: "Server cold start",
+  title: "Waking up the API",
+  body: "LetsConnect’s backend is hosted on Render’s free tier. When idle, the service sleeps to save resources. The first request (like signing you in with /auth/me) waits while Render starts the server again — usually about 30–60 seconds. This isn’t a bug; it’s free-tier spin-up time.",
+};
 
 const CONNECT_ICONS: { label: string; icon: ComponentType<{ className?: string }> }[] = [
   { label: "Gmail", icon: Mail },
@@ -98,7 +108,7 @@ type ColdStartTourProps = {
 };
 
 export default function ColdStartTour({ active, delayMs = SHOW_DELAY_MS }: ColdStartTourProps) {
-  const [eligible, setEligible] = useState(() => !hasSeenColdStartTour());
+  const showFullTour = !hasSeenColdStartTour();
   const [visible, setVisible] = useState(false);
   const [step, setStep] = useState(0);
   const [elapsedSec, setElapsedSec] = useState(0);
@@ -106,46 +116,49 @@ export default function ColdStartTour({ active, delayMs = SHOW_DELAY_MS }: ColdS
   const loadingStartedRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!eligible) return;
-
     if (active) {
       loadingStartedRef.current ??= Date.now();
       setStillLoading(true);
-    } else if (visible) {
-      setStillLoading(false);
-    } else {
-      loadingStartedRef.current = null;
-      setElapsedSec(0);
+      return;
     }
-  }, [active, eligible, visible]);
+
+    if (visible) {
+      setStillLoading(false);
+      return;
+    }
+
+    loadingStartedRef.current = null;
+    setElapsedSec(0);
+    setVisible(false);
+  }, [active, visible]);
 
   useEffect(() => {
-    if (!eligible || !active || visible) return;
-
+    if (!active || visible) return;
     const timer = window.setTimeout(() => setVisible(true), delayMs);
     return () => window.clearTimeout(timer);
-  }, [eligible, active, visible, delayMs]);
+  }, [active, visible, delayMs]);
 
   useEffect(() => {
     if (!visible) return;
-
     const tick = window.setInterval(() => {
       const started = loadingStartedRef.current;
-      if (started) {
-        setElapsedSec(Math.floor((Date.now() - started) / 1000));
-      }
+      if (started) setElapsedSec(Math.floor((Date.now() - started) / 1000));
     }, 1000);
-
     return () => window.clearInterval(tick);
   }, [visible]);
 
-  function finish() {
-    markColdStartTourSeen();
-    setEligible(false);
+  useEffect(() => {
+    if (!visible || stillLoading || showFullTour) return;
+    const timer = window.setTimeout(() => setVisible(false), 1200);
+    return () => window.clearTimeout(timer);
+  }, [visible, stillLoading, showFullTour]);
+
+  function dismiss() {
+    if (showFullTour) markColdStartTourSeen();
     setVisible(false);
   }
 
-  if (!visible || !eligible) return null;
+  if (!visible) return null;
 
   const slide = SLIDES[step];
   const isFirst = step === 0;
@@ -160,14 +173,9 @@ export default function ColdStartTour({ active, delayMs = SHOW_DELAY_MS }: ColdS
     >
       <div className="absolute inset-0 bg-slate-950/55 backdrop-blur-[2px] animate-[cold-tour-fade_0.35s_ease-out]" />
 
-      <div
-        className={cn(
-          "relative flex w-full max-w-lg flex-col overflow-hidden rounded-3xl",
-          "border border-white/10 bg-white shadow-2xl shadow-slate-900/25",
-          "animate-[cold-tour-in_0.45s_ease-out]",
-        )}
-      >
-        <div className="relative overflow-hidden bg-[#0f172a] px-6 pb-8 pt-5 text-white">
+      <div className={CARD_CLASS}>
+        {/* Fixed header */}
+        <div className="relative shrink-0 overflow-hidden bg-[#0f172a] px-5 pb-4 pt-4 text-white sm:px-6 sm:pt-5">
           <div className="pointer-events-none absolute -left-16 -top-16 size-48 rounded-full bg-indigo-500/35 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-20 -right-10 size-56 rounded-full bg-sky-500/20 blur-3xl" />
 
@@ -175,97 +183,97 @@ export default function ColdStartTour({ active, delayMs = SHOW_DELAY_MS }: ColdS
             <Logo imageClassName="size-10" nameClassName="text-base text-white" />
             <button
               type="button"
-              onClick={finish}
+              onClick={dismiss}
               className="rounded-lg p-1.5 text-slate-300 transition hover:bg-white/10 hover:text-white"
-              aria-label="Skip tour"
+              aria-label={showFullTour ? "Skip tour" : "Dismiss"}
             >
               <X className="size-4" />
             </button>
           </div>
 
-          <div key={step} className="relative mt-6 animate-[cold-slide_0.4s_ease-out]">
-            <SlideVisual kind={slide.visual} />
+          {/* Visual slot — fixed min-height so card size stays stable when swapping slides */}
+          <div className="relative mt-4 min-h-[120px] sm:min-h-[132px]">
+            {showFullTour ? (
+              <div key={step} className="animate-[cold-slide_0.4s_ease-out]">
+                <SlideVisual kind={slide.visual} />
+              </div>
+            ) : (
+              <div className="flex h-full flex-col justify-center animate-[cold-slide_0.4s_ease-out]">
+                <p className="text-lg font-medium leading-snug text-indigo-200 sm:text-xl">
+                  Render free tier is waking up
+                </p>
+                <p className="mt-1.5 text-sm text-slate-300">Usually 30–60 seconds on first load</p>
+              </div>
+            )}
           </div>
         </div>
 
-        <div className="flex flex-1 flex-col px-6 pb-6 pt-5">
-          <div key={`copy-${step}`} className="animate-[cold-slide_0.4s_ease-out]">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-indigo-600">
-              {slide.eyebrow}
-            </p>
-            <h2 id="cold-start-title" className="mt-1.5 text-xl font-semibold tracking-tight text-foreground">
-              {slide.title}
-            </h2>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{slide.body}</p>
-
-            {slide.points && (
-              <ul className="mt-4 space-y-2">
-                {slide.points.map((point) => (
-                  <li key={point} className="flex items-start gap-2.5 text-sm text-foreground">
-                    <Sparkles className="mt-0.5 size-3.5 shrink-0 text-indigo-500" />
-                    <span>{point}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-
-          <div className="mt-6 flex items-center justify-between gap-2 rounded-xl bg-slate-50 px-3 py-2.5">
-            <div className="flex items-center gap-2">
-              <span className="relative flex size-2">
-                {stillLoading && (
-                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-indigo-400 opacity-60" />
-                )}
-                <span
-                  className={cn(
-                    "relative inline-flex size-2 rounded-full",
-                    stillLoading ? "bg-indigo-500" : "bg-emerald-500",
-                  )}
-                />
-              </span>
-              <p className="text-xs text-muted-foreground">
-                {stillLoading
-                  ? "Waking Render free tier…"
-                  : "Backend is ready — finish when you like"}
-              </p>
-            </div>
-            <span className="text-[11px] font-medium tabular-nums text-indigo-600">
-              {elapsedSec > 0 ? `${elapsedSec}s` : "…"}
-            </span>
-          </div>
-
-          <div className="mt-5 flex items-center justify-between gap-3">
-            <div className="flex gap-1.5" aria-hidden>
-              {SLIDES.map((_, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => setStep(i)}
-                  className={cn(
-                    "h-1.5 rounded-full transition-all",
-                    i === step ? "w-5 bg-indigo-600" : "w-1.5 bg-slate-200 hover:bg-slate-300",
-                  )}
-                  aria-label={`Go to slide ${i + 1}`}
-                />
-              ))}
-            </div>
-
-            <div className="flex gap-2">
-              {!isFirst && (
-                <Button variant="ghost" size="sm" onClick={() => setStep((s) => s - 1)}>
-                  <ArrowLeft className="size-4" />
-                  Back
-                </Button>
-              )}
-              {!isLast ? (
-                <Button size="sm" onClick={() => setStep((s) => s + 1)}>
-                  Next
-                  <ArrowRight className="size-4" />
-                </Button>
+        {/* Scrollable body — same width/height budget; overflow on small screens */}
+        <div className="flex min-h-0 flex-1 flex-col bg-white">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4 sm:px-6 sm:py-5">
+            <div
+              key={showFullTour ? `tour-${step}` : "cold-start"}
+              className="animate-[cold-slide_0.4s_ease-out]"
+            >
+              {showFullTour ? (
+                <SlideCopy slide={slide} />
               ) : (
-                <Button size="sm" onClick={finish}>
+                <SlideCopy
+                  slide={{
+                    eyebrow: COLD_START_COPY.eyebrow,
+                    title: COLD_START_COPY.title,
+                    body: COLD_START_COPY.body,
+                    visual: "welcome",
+                  }}
+                />
+              )}
+            </div>
+          </div>
+
+          {/* Fixed footer */}
+          <div className="shrink-0 border-t border-slate-100 px-5 pb-5 pt-3 sm:px-6">
+            <LoadingStatus stillLoading={stillLoading} elapsedSec={elapsedSec} />
+
+            <div className="mt-4 flex items-center justify-between gap-3">
+              {showFullTour ? (
+                <>
+                  <div className="flex gap-1.5" aria-hidden>
+                    {SLIDES.map((_, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setStep(i)}
+                        className={cn(
+                          "h-1.5 rounded-full transition-all",
+                          i === step ? "w-5 bg-indigo-600" : "w-1.5 bg-slate-200 hover:bg-slate-300",
+                        )}
+                        aria-label={`Go to slide ${i + 1}`}
+                      />
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    {!isFirst && (
+                      <Button variant="ghost" size="sm" onClick={() => setStep((s) => s - 1)}>
+                        <ArrowLeft className="size-4" />
+                        Back
+                      </Button>
+                    )}
+                    {!isLast ? (
+                      <Button size="sm" onClick={() => setStep((s) => s + 1)}>
+                        Next
+                        <ArrowRight className="size-4" />
+                      </Button>
+                    ) : (
+                      <Button size="sm" onClick={dismiss}>
+                        {stillLoading ? "Got it" : "Continue"}
+                        <Check className="size-4" />
+                      </Button>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <Button size="sm" className="ml-auto" onClick={dismiss}>
                   {stillLoading ? "Got it" : "Continue"}
-                  <Check className="size-4" />
                 </Button>
               )}
             </div>
@@ -277,15 +285,65 @@ export default function ColdStartTour({ active, delayMs = SHOW_DELAY_MS }: ColdS
   );
 }
 
+function SlideCopy({ slide }: { slide: Slide }) {
+  return (
+    <>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-indigo-600">
+        {slide.eyebrow}
+      </p>
+      <h2 id="cold-start-title" className="mt-1.5 text-xl font-semibold tracking-tight text-foreground">
+        {slide.title}
+      </h2>
+      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{slide.body}</p>
+      {slide.points && (
+        <ul className="mt-4 space-y-2">
+          {slide.points.map((point) => (
+            <li key={point} className="flex items-start gap-2.5 text-sm text-foreground">
+              <Sparkles className="mt-0.5 size-3.5 shrink-0 text-indigo-500" />
+              <span>{point}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
+  );
+}
+
+function LoadingStatus({ stillLoading, elapsedSec }: { stillLoading: boolean; elapsedSec: number }) {
+  return (
+    <div className="flex items-center justify-between gap-2 rounded-xl bg-slate-50 px-3 py-2.5">
+      <div className="flex min-w-0 items-center gap-2">
+        <span className="relative flex size-2 shrink-0">
+          {stillLoading && (
+            <span className="absolute inline-flex size-full animate-ping rounded-full bg-indigo-400 opacity-60" />
+          )}
+          <span
+            className={cn(
+              "relative inline-flex size-2 rounded-full",
+              stillLoading ? "bg-indigo-500" : "bg-emerald-500",
+            )}
+          />
+        </span>
+        <p className="truncate text-xs text-muted-foreground">
+          {stillLoading ? "Waking Render free tier…" : "Backend is ready"}
+        </p>
+      </div>
+      <span className="shrink-0 text-[11px] font-medium tabular-nums text-indigo-600">
+        {elapsedSec > 0 ? `${elapsedSec}s` : "…"}
+      </span>
+    </div>
+  );
+}
+
 function SlideVisual({ kind }: { kind: Slide["visual"] }) {
   if (kind === "welcome") {
     return (
-      <div className="flex flex-col items-start gap-3">
-        <p className="max-w-sm text-2xl font-normal leading-snug text-indigo-200">
+      <div className="flex flex-col items-start gap-2">
+        <p className="max-w-sm text-xl font-normal leading-snug text-indigo-200 sm:text-2xl">
           AI assistant for your work tools
         </p>
         <p className="max-w-sm text-sm text-slate-300">
-          Free-tier hosting sleeps when idle — first load takes a moment. LetsConnect is worth the wait.
+          Free-tier hosting sleeps when idle — first load takes a moment.
         </p>
       </div>
     );
@@ -297,13 +355,13 @@ function SlideVisual({ kind }: { kind: Slide["visual"] }) {
         {CONNECT_ICONS.map(({ label, icon: Icon }, i) => (
           <div
             key={label}
-            className="flex flex-col items-center gap-2 rounded-2xl bg-white/10 px-3 py-3 ring-1 ring-white/10"
+            className="flex flex-col items-center gap-1.5 rounded-2xl bg-white/10 px-2 py-2.5 ring-1 ring-white/10 sm:gap-2 sm:px-3 sm:py-3"
             style={{ animation: `cold-pop 0.45s ease-out ${i * 0.07}s both` }}
           >
-            <span className="flex size-10 items-center justify-center rounded-xl bg-white/15">
-              <Icon className="size-5 text-white" />
+            <span className="flex size-9 items-center justify-center rounded-xl bg-white/15 sm:size-10">
+              <Icon className="size-4 text-white sm:size-5" />
             </span>
-            <span className="text-[11px] font-medium text-slate-200">{label}</span>
+            <span className="text-[10px] font-medium text-slate-200 sm:text-[11px]">{label}</span>
           </div>
         ))}
       </div>
@@ -329,10 +387,10 @@ function SlideVisual({ kind }: { kind: Slide["visual"] }) {
         {["Inbox", "Calendar", "Slack", "Jira", "GitHub"].map((label, i) => (
           <span
             key={label}
-            className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs text-slate-100 ring-1 ring-white/10"
+            className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-xs text-slate-100 ring-1 ring-white/10 sm:px-3 sm:py-1.5"
             style={{ animation: `cold-pop 0.4s ease-out ${i * 0.06}s both` }}
           >
-            <Link2 className="size-3.5 text-indigo-300" />
+            <Link2 className="size-3 text-indigo-300 sm:size-3.5" />
             {label}
           </span>
         ))}
@@ -342,8 +400,8 @@ function SlideVisual({ kind }: { kind: Slide["visual"] }) {
 
   return (
     <div className="flex items-center gap-3">
-      <span className="flex size-12 items-center justify-center rounded-2xl bg-emerald-400/20 ring-1 ring-emerald-300/30">
-        <Check className="size-6 text-emerald-300" strokeWidth={2.5} />
+      <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-400/20 ring-1 ring-emerald-300/30 sm:size-12">
+        <Check className="size-5 text-emerald-300 sm:size-6" strokeWidth={2.5} />
       </span>
       <div>
         <p className="text-base font-medium text-white">You’re all set</p>

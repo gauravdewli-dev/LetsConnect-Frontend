@@ -74,7 +74,7 @@ export function AssistantMessage({ content, timestamp, channel }: AssistantMessa
       <img
         src={LOGO_SRC}
         alt=""
-        className="mb-5 size-8 shrink-0 rounded-full object-cover ring-2 ring-white shadow-sm"
+        className="mb-5 size-7 rounded-full object-cover ring-2 ring-indigo-100 sm:size-10"
       />
       <div className="flex max-w-[min(85%,36rem)] flex-col gap-1">
         <div className="space-y-3 rounded-2xl rounded-bl-md border border-slate-200/80 bg-white px-4 py-3 shadow-sm">

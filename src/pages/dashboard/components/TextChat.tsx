@@ -1,7 +1,6 @@
 import { type FormEvent, type UIEvent, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Loader2, RefreshCw, Send, Sparkles } from "lucide-react";
 
-import { LOGO_SRC } from "@/atoms/Logo";
 import { Button } from "@/atoms/ui/button";
 import type { ChatMessage, StoredChatMessage } from "@/types";
 
@@ -251,27 +250,35 @@ export default function TextChat() {
     slackSynced && "Slack",
     jiraConnected && "Jira",
     githubConnected && "GitHub",
-  ]
-    .filter(Boolean)
-    .join(", ");
-
-  const statusLine = slackReconnectNeeded
-    ? "Reconnect Slack from Connected accounts to send messages as you."
-    : canChat
-      ? slackSynced
-        ? `Online · ${connectedTools} · synced with Slack`
-        : `Online · ${connectedTools}`
-      : "Connect Gmail, Slack, Jira, or GitHub to start chatting.";
+  ].filter(Boolean) as string[];
 
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col bg-slate-50/50">
-      <div className="shrink-0 border-b bg-white/90 px-6 py-4 backdrop-blur-sm">
-        <div className="flex items-center gap-3">
-          <img src={LOGO_SRC} alt="" className="size-10 rounded-full object-cover ring-2 ring-indigo-100" />
-          <div>
-            <h1 className="text-lg font-semibold">LetsConnect</h1>
-            <p className="text-sm text-muted-foreground">{statusLine}</p>
+      <div className="flex h-[4.375rem] shrink-0 flex-col justify-center border-b bg-white px-4 sm:px-6">
+        <div className="min-w-0">
+          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
+            <h1 className="text-base font-semibold sm:text-lg">LetsConnect</h1>
+            {canChat && !slackReconnectNeeded && (
+              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700">
+                <span className="size-1.5 shrink-0 rounded-full bg-emerald-500" aria-hidden />
+                Online
+              </span>
+            )}
           </div>
+          {slackReconnectNeeded ? (
+            <p className="mt-0.5 text-xs leading-snug text-amber-700 sm:text-sm">
+              Reconnect Slack from Connected accounts to send as you.
+            </p>
+          ) : canChat ? (
+            <p className="mt-0.5 truncate text-xs text-muted-foreground sm:text-sm" title={connectedTools.join(", ")}>
+              {connectedTools.join(" · ")}
+              {slackSynced ? " · Synced with Slack" : ""}
+            </p>
+          ) : (
+            <p className="mt-0.5 text-xs leading-snug text-muted-foreground sm:text-sm">
+              Connect Gmail, Slack, Jira, or GitHub to start chatting.
+            </p>
+          )}
         </div>
       </div>
 
@@ -363,12 +370,12 @@ export default function TextChat() {
         </div>
       </div>
 
-      <div className="shrink-0 border-t bg-white px-4 py-4 md:px-8">
+      <div className="flex h-24 shrink-0 flex-col justify-center gap-1 border-t bg-white px-4 md:px-8">
         {error && (
-          <p className="mx-auto mb-2 max-w-3xl text-sm text-destructive">{error}</p>
+          <p className="mx-auto max-w-3xl truncate text-xs text-destructive">{error}</p>
         )}
-        <form onSubmit={handleSubmit} className="mx-auto flex max-w-3xl items-end gap-2">
-          <div className="relative flex-1 rounded-2xl border border-slate-200 bg-slate-50/80 shadow-sm focus-within:border-indigo-300 focus-within:ring-2 focus-within:ring-indigo-100">
+        <form onSubmit={handleSubmit} className="mx-auto flex w-full max-w-3xl items-end gap-2">
+          <div className="relative flex min-h-11 flex-1 items-center rounded-2xl border border-slate-200 bg-slate-50/80 shadow-sm transition-[border-color,box-shadow] focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-100">
             <textarea
               ref={inputRef}
               value={input}
@@ -383,19 +390,19 @@ export default function TextChat() {
                     : "Connect an integration first"
               }
               disabled={!canChat || loading || historyLoading || !!historyError}
-              className="max-h-32 min-h-[44px] w-full resize-none bg-transparent px-4 py-3 text-sm outline-none placeholder:text-muted-foreground disabled:opacity-50"
+              className="max-h-24 min-h-11 w-full resize-none bg-transparent px-4 py-2.5 text-sm leading-5 outline-none placeholder:text-muted-foreground disabled:opacity-50"
             />
           </div>
           <Button
             type="submit"
             disabled={!canChat || loading || historyLoading || !!historyError || !input.trim()}
-            className="size-11 shrink-0 rounded-xl px-0"
+            className="size-11 shrink-0 rounded-2xl px-0"
           >
             <Send className="size-4" />
             <span className="sr-only">Send</span>
           </Button>
         </form>
-        <p className="mx-auto mt-2 max-w-3xl text-center text-[10px] text-muted-foreground">
+        <p className="mx-auto max-w-3xl text-center text-[10px] leading-none text-muted-foreground">
           Enter to send · Shift+Enter for new line
         </p>
       </div>
