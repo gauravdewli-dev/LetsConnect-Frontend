@@ -254,7 +254,7 @@ export default function TextChat() {
 
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col bg-slate-50/50">
-      <div className="flex h-[4.375rem] shrink-0 flex-col justify-center border-b bg-white px-4 sm:px-6">
+      <div className="shrink-0 border-b bg-white px-3 py-2.5 sm:px-4 md:flex md:h-[4.375rem] md:flex-col md:justify-center md:px-6 md:py-0">
         <div className="min-w-0">
           <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
             <h1 className="text-base font-semibold sm:text-lg">LetsConnect</h1>
@@ -270,12 +270,15 @@ export default function TextChat() {
               Reconnect Slack from Connected accounts to send as you.
             </p>
           ) : canChat ? (
-            <p className="mt-0.5 truncate text-xs text-muted-foreground sm:text-sm" title={connectedTools.join(", ")}>
+            <p
+              className="mt-0.5 hidden truncate text-xs text-muted-foreground sm:block sm:text-sm"
+              title={connectedTools.join(", ")}
+            >
               {connectedTools.join(" · ")}
               {slackSynced ? " · Synced with Slack" : ""}
             </p>
           ) : (
-            <p className="mt-0.5 text-xs leading-snug text-muted-foreground sm:text-sm">
+            <p className="mt-0.5 hidden text-xs leading-snug text-muted-foreground sm:block sm:text-sm">
               Connect Gmail, Slack, Jira, or GitHub to start chatting.
             </p>
           )}
@@ -285,7 +288,7 @@ export default function TextChat() {
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 py-6 md:px-8"
+        className="flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-3 md:px-8 md:py-6"
       >
         <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4">
           {historyLoading && <ChatHistorySkeleton slackSynced={slackSynced} />}
@@ -370,12 +373,12 @@ export default function TextChat() {
         </div>
       </div>
 
-      <div className="flex h-24 shrink-0 flex-col justify-center gap-1 border-t bg-white px-4 md:px-8">
+      <div className="shrink-0 border-t bg-white px-3 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] md:flex md:h-24 md:flex-col md:justify-center md:gap-1 md:px-8 md:py-0">
         {error && (
-          <p className="mx-auto max-w-3xl truncate text-xs text-destructive">{error}</p>
+          <p className="mx-auto mb-1 max-w-3xl truncate text-xs text-destructive md:mb-0">{error}</p>
         )}
         <form onSubmit={handleSubmit} className="mx-auto flex w-full max-w-3xl items-end gap-2">
-          <div className="relative flex min-h-11 flex-1 items-center rounded-2xl border border-slate-200 bg-slate-50/80 shadow-sm transition-[border-color,box-shadow] focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-100">
+          <div className="relative flex min-h-10 flex-1 items-center rounded-2xl border border-slate-200 bg-slate-50/80 shadow-sm transition-[border-color,box-shadow] focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-100 md:min-h-11">
             <textarea
               ref={inputRef}
               value={input}
@@ -390,19 +393,19 @@ export default function TextChat() {
                     : "Connect an integration first"
               }
               disabled={!canChat || loading || historyLoading || !!historyError}
-              className="max-h-24 min-h-11 w-full resize-none bg-transparent px-4 py-2.5 text-sm leading-5 outline-none placeholder:text-muted-foreground disabled:opacity-50"
+              className="max-h-[min(8rem,30dvh)] min-h-10 w-full resize-none bg-transparent px-3 py-2 text-sm leading-5 outline-none placeholder:text-muted-foreground disabled:opacity-50 md:max-h-24 md:min-h-11 md:px-4 md:py-2.5"
             />
           </div>
           <Button
             type="submit"
             disabled={!canChat || loading || historyLoading || !!historyError || !input.trim()}
-            className="size-11 shrink-0 rounded-2xl px-0"
+            className="size-10 shrink-0 rounded-2xl px-0 md:size-11"
           >
             <Send className="size-4" />
             <span className="sr-only">Send</span>
           </Button>
         </form>
-        <p className="mx-auto max-w-3xl text-center text-[10px] leading-none text-muted-foreground">
+        <p className="mx-auto mt-1.5 hidden max-w-3xl text-center text-[10px] leading-none text-muted-foreground md:mt-0 md:block">
           Enter to send · Shift+Enter for new line
         </p>
       </div>
