@@ -80,7 +80,7 @@ export default function DashboardLayout({
       <header className="relative z-40 shrink-0 border-b bg-white lg:hidden" ref={menuRef}>
         <div className="flex items-center justify-between gap-2 px-3 py-2.5 sm:px-4">
         <div className="flex min-w-0 items-center gap-2">
-          <Logo showImage={false} nameClassName="text-base" />
+          <Logo nameClassName="text-base" />
           {showChatOnline && (
             <span className="inline-flex shrink-0 items-center gap-1.5 text-xs font-medium text-emerald-700">
               <span className="size-1.5 rounded-full bg-emerald-500" aria-hidden />
