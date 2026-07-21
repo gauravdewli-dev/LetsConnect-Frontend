@@ -1,5 +1,5 @@
-import type { ComponentType, ReactNode } from "react";
-import { Code2, LayoutDashboard, LogOut, MessageSquare } from "lucide-react";
+import { useEffect, useRef, useState, type ComponentType, type ReactNode } from "react";
+import { Code2, LayoutDashboard, LogOut, Menu, MessageSquare, X } from "lucide-react";
 
 import Logo from "@/atoms/Logo";
 import { Button } from "@/atoms/ui/button";
@@ -29,39 +29,119 @@ export default function DashboardLayout({
   onLogout,
   children,
 }: DashboardLayoutProps) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const activeItem = NAV_ITEMS.find((item) => item.id === activeTab) ?? NAV_ITEMS[0];
+  const ActiveIcon = activeItem.icon;
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setMenuOpen(false);
+    }
+
+    function onPointerDown(e: MouseEvent | TouchEvent) {
+      const target = e.target as Node;
+      if (menuRef.current && !menuRef.current.contains(target)) {
+        setMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("touchstart", onPointerDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("touchstart", onPointerDown);
+    };
+  }, [menuOpen]);
+
   return (
     <div className="flex h-screen flex-col bg-background md:flex-row">
-      {/* Mobile top bar */}
-      <header className="flex items-center justify-between border-b px-4 py-3 md:hidden">
-        <Logo imageClassName="size-8" nameClassName="text-base" />
-        <Button variant="ghost" size="sm" onClick={onLogout}>
-          Log out
-        </Button>
+      {/* Mobile top bar + menu */}
+      <header className="relative z-40 shrink-0 border-b bg-white md:hidden" ref={menuRef}>
+        <div className="flex items-center justify-between gap-2 px-3 py-2.5 sm:px-4">
+          <Logo imageClassName="size-8" nameClassName="text-base" />
+
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => setMenuOpen((open) => !open)}
+              className={cn(
+                "inline-flex items-center gap-2 rounded-xl border px-2.5 py-2 text-sm font-medium transition",
+                menuOpen
+                  ? "border-indigo-200 bg-indigo-50 text-indigo-700"
+                  : "border-slate-200 bg-white text-foreground hover:bg-slate-50",
+              )}
+              aria-expanded={menuOpen}
+              aria-controls="mobile-nav-menu"
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
+            >
+              {menuOpen ? <X className="size-4 shrink-0" /> : <Menu className="size-4 shrink-0" />}
+              <ActiveIcon className="size-4 shrink-0 text-indigo-600" />
+              <span className="max-w-[9.5rem] truncate sm:max-w-none">{activeItem.label}</span>
+            </button>
+
+            <Button variant="ghost" size="sm" className="shrink-0 px-2" onClick={onLogout}>
+              <LogOut className="size-4 sm:mr-1.5" />
+              <span className="hidden sm:inline">Log out</span>
+            </Button>
+          </div>
+        </div>
+
+        {menuOpen && (
+          <nav
+            id="mobile-nav-menu"
+            className="absolute inset-x-0 top-full z-50 border-b border-slate-200 bg-white px-2 py-2 shadow-lg shadow-slate-900/10"
+            aria-label="Dashboard sections"
+          >
+            <ul className="space-y-0.5">
+              {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
+                const selected = activeTab === id;
+                return (
+                  <li key={id}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onTabChange(id);
+                        setMenuOpen(false);
+                      }}
+                      className={cn(
+                        "flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-medium transition-colors",
+                        selected
+                          ? "bg-indigo-600 text-white shadow-sm"
+                          : "text-foreground hover:bg-slate-50",
+                      )}
+                    >
+                      <Icon className={cn("size-4 shrink-0", selected ? "text-white" : "text-indigo-600")} />
+                      {label}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+        )}
       </header>
 
-      {/* Mobile tabs */}
-      <nav className="flex border-b md:hidden">
-        {NAV_ITEMS.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => onTabChange(id)}
-            className={cn(
-              "flex flex-1 items-center justify-center gap-2 border-b-2 px-3 py-3 text-sm font-medium transition-colors",
-              activeTab === id
-                ? "border-indigo-600 text-indigo-600"
-                : "border-transparent text-muted-foreground",
-            )}
-          >
-            <Icon className="size-4" />
-            {label}
-          </button>
-        ))}
-      </nav>
+      {menuOpen && (
+        <button
+          type="button"
+          className="fixed inset-0 z-30 bg-slate-950/25 md:hidden"
+          aria-label="Close menu"
+          onClick={() => setMenuOpen(false)}
+        />
+      )}
 
       {/* Sidebar — desktop */}
       <aside className="hidden w-60 shrink-0 flex-col border-r bg-slate-50/80 md:flex">
-        <div className="flex items-center border-b px-5 py-5">
+        <div className="flex h-[4.375rem] shrink-0 items-center border-b bg-white px-5">
           <Logo imageClassName="size-10" nameClassName="text-base" />
         </div>
 
@@ -84,7 +164,7 @@ export default function DashboardLayout({
           ))}
         </nav>
 
-        <div className="border-t p-3">
+        <div className="flex h-24 shrink-0 items-center border-t bg-white p-3">
           <Button variant="ghost" size="sm" className="w-full justify-start gap-2" onClick={onLogout}>
             <LogOut className="size-4" />
             Log out
@@ -92,7 +172,7 @@ export default function DashboardLayout({
         </div>
       </aside>
 
-      <main className="flex flex-1 flex-col overflow-hidden">{children}</main>
+      <main className="flex min-h-0 flex-1 flex-col overflow-hidden">{children}</main>
     </div>
   );
 }
